@@ -164,9 +164,9 @@ export default function Home() {
     <main id="top">
       <header className="site-header">
         <div className="shell header-inner">
-          <a className="brandmark" href="#top" aria-label="EW Watches — наверх">
-            <Image src={LOGO} alt="Логотип EW Watches" width={48} height={48} unoptimized />
-            <span><b>EW WATCHES</b><small>PRIVATE INVENTORY</small></span>
+          <a className="brandmark" href="#top" aria-label="Elliot Watches — наверх">
+            <Image src={LOGO} alt="Логотип Elliot Watches" width={48} height={48} unoptimized />
+            <span><b>ELLIOT WATCHES</b><small>PRIVATE INVENTORY</small></span>
           </a>
           <nav aria-label="Основная навигация">
             <a href="#inventory">Инвентарь</a>
@@ -287,12 +287,12 @@ export default function Home() {
 
       <footer className="site-footer">
         <div className="shell footer-grid">
-          <div className="footer-brand"><div className="brandmark"><Image src={LOGO} alt="EW Watches" width={48} height={48} unoptimized /><span><b>EW WATCHES</b><small>PRIVATE INVENTORY</small></span></div><p>Нейтральный складской реестр для точной сверки позиций и остатков.</p></div>
+          <div className="footer-brand"><div className="brandmark"><Image src={LOGO} alt="Elliot Watches" width={48} height={48} unoptimized /><span><b>ELLIOT WATCHES</b><small>PRIVATE INVENTORY</small></span></div><p>Нейтральный складской реестр для точной сверки позиций и остатков.</p></div>
           <div><h2>Реестр</h2><a href="#inventory">Все позиции</a><a href="#summary">Сводка</a><a href="#insights">Категории</a></div>
           <div><h2>Система</h2><a href="#about">О реестре</a><a href="#inventory">Поиск</a><span>Обновлено 06.08.2026</span></div>
           <div className="footer-status"><h2>Статус</h2><p><i /> Реестр доступен</p><small>{inventory.length} позиций · {units} единиц</small></div>
         </div>
-        <div className="shell footer-bottom"><span>© 2026 EW Watches. Внутренний документ.</span><a href="#top">Наверх ↑</a></div>
+        <div className="shell footer-bottom"><span>© 2026 Elliot Watches. Внутренний документ.</span><a href="#top">Наверх ↑</a></div>
       </footer>
 
       {selected && (
