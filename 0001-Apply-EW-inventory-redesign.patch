@@ -1,0 +1,2259 @@
+From cbbb82ef1638eba256805533a2354806a7ea039f Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sun, 9 Aug 2026 20:17:22 +0200
+Subject: [PATCH] Apply EW inventory redesign
+
+---
+ README.md       |   10 +-
+ app/globals.css | 1817 ++++++++++++++++++++++++++++++++++++++++++++++-
+ app/layout.tsx  |    4 +-
+ app/page.tsx    |  339 +++++++--
+ 4 files changed, 2097 insertions(+), 73 deletions(-)
+
+diff --git a/README.md b/README.md
+index 03ec941..36c8c90 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,8 @@
+-# Внутренний складской реестр EW
++# EW Watches — закрытый складской реестр
+ 
+-Готовый проект для публикации через GitHub Pages. Карточки используют нейтральные CSS-заглушки без фотографий и внешних ссылок ANDIOT.
++Премиальный светлый интерфейс складского учёта для публикации через GitHub Pages. В реестре доступны поиск, фильтры, сортировка, сеточный и списочный режимы, пагинация, сводка и подробная карточка позиции.
++
++Все позиции используют нейтральные CSS-силуэты часов: в проекте нет фотографий и внешних ссылок ANDIOT.
+ 
+ ## Как опубликовать
+ 
+@@ -41,7 +43,7 @@ npm run build
+ 
+ ## Где менять содержимое
+ 
+-- `app/page.tsx` — интерфейс, поиск, фильтры и карточки;
+-- `app/globals.css` — адаптивный дизайн;
++- `app/page.tsx` — интерфейс, сводка, поиск, фильтры и подробная карточка;
++- `app/globals.css` — премиальный светлый адаптивный дизайн и нейтральные силуэты часов;
+ - `app/inventory-a.json` и `app/inventory-b.json` — данные складских позиций;
+ - `app/layout.tsx` — название, описание и корневой макет сайта.
+diff --git a/app/globals.css b/app/globals.css
+index 10f3211..ec6409a 100644
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -1,10 +1,1807 @@
+-@import "tailwindcss";
+-
+-:root{--ink:#1d2321;--muted:#6e7772;--line:#dfe4e1;--sage:#dfe9df;--green:#244c3a;--cream:#f6f7f4;--white:#fff}
+-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,Helvetica,sans-serif}button,input,select{font:inherit}button,a{transition:.2s ease}a{color:inherit;text-decoration:none}.topbar{height:86px;background:rgba(255,255,255,.94);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(24px,5vw,76px);position:sticky;top:0;z-index:20;backdrop-filter:blur(14px)}.brandmark{display:flex;align-items:center;gap:10px}.brandmark img{width:48px;height:48px;object-fit:cover;border-radius:50%;mix-blend-mode:multiply}.brandmark span{display:flex;flex-direction:column}.brandmark b{font-size:20px;letter-spacing:.12em}.brandmark small{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}nav{display:flex;gap:38px;font-size:13px}nav a:hover{color:#537b65}.outlineBtn{border:1px solid #aab2ad;padding:12px 18px;border-radius:99px;font-size:12px}.outlineBtn:hover{background:var(--ink);color:white;border-color:var(--ink)}.hero{min-height:610px;display:grid;grid-template-columns:1.05fr .95fr;align-items:center;padding:70px clamp(24px,7vw,110px);overflow:hidden;background:radial-gradient(circle at 78% 40%,#eef2ed 0,#f6f7f4 42%,#f6f7f4 100%)}.heroCopy{position:relative;z-index:2}.eyebrow{display:block;text-transform:uppercase;letter-spacing:.18em;font-weight:700;font-size:10px;color:#60806f;margin-bottom:18px}.hero h1{font-family:Georgia,serif;font-size:clamp(54px,6vw,88px);line-height:.98;letter-spacing:-.045em;margin:0;max-width:700px;font-weight:400}.hero h1 em{font-weight:400;color:#6b8b77}.heroCopy>p{font-family:Georgia,serif;font-size:18px;line-height:1.7;color:var(--muted);max-width:570px;margin:30px 0}.primaryBtn{background:var(--green);color:white;display:inline-flex;align-items:center;gap:32px;padding:17px 23px;border-radius:4px;font-size:12px;letter-spacing:.05em}.primaryBtn:hover{background:#17372a;transform:translateY(-2px)}.primaryBtn span{font-size:18px}.heroVisual{height:470px;position:relative;display:grid;place-items:center}.dial{width:min(36vw,430px);aspect-ratio:1;border-radius:50%;border:14px solid #d6ddd8;box-shadow:inset 0 0 0 2px #bec8c0,0 30px 80px #87998c30;background:radial-gradient(circle,#fcfcfa 0 54%,#e9ede9 55% 58%,#fafbf9 59%);position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#858f88}.dial:after{content:"";position:absolute;inset:15px;border-radius:50%;background:repeating-conic-gradient(from -1deg,#56625b 0 1deg,transparent 1deg 29deg);mask:radial-gradient(circle,transparent 0 83%,#000 84%)}.dial .twelve{position:absolute;top:40px;font-family:Georgia;font-size:28px;color:#4e5852}.dial b{font-size:36px;letter-spacing:.2em;margin-left:.2em}.dial small{letter-spacing:.28em;font-size:8px;margin-top:5px}.hand{height:125px;width:4px;background:#38433c;position:absolute;bottom:50%;left:calc(50% - 2px);transform-origin:bottom;border-radius:5px;z-index:3}.hand.one{transform:rotate(52deg);height:105px}.hand.two{transform:rotate(320deg);width:2px;background:#77907f}.dial:before{content:"";width:15px;height:15px;border-radius:50%;background:#26332b;position:absolute;z-index:4}.floatCard{position:absolute;left:2%;bottom:12%;background:white;padding:18px 23px;box-shadow:0 15px 45px #52645a25;border-left:3px solid #789683}.floatCard span,.floatCard small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.12em}.floatCard strong{font-family:Georgia;font-size:34px;font-weight:400;margin-right:6px}.stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--green);color:white;padding:32px clamp(24px,7vw,110px)}.stats div{display:flex;flex-direction:column;align-items:center;border-right:1px solid #ffffff28}.stats div:last-child{border:0}.stats strong{font-family:Georgia;font-size:31px;font-weight:400}.stats span{color:#b8c9bf;text-transform:uppercase;letter-spacing:.14em;font-size:8px;margin-top:7px}.catalog{padding:90px clamp(20px,6vw,90px) 110px}.sectionHead{display:flex;justify-content:space-between;align-items:end;margin-bottom:30px}.sectionHead h2{font-family:Georgia;font-weight:400;font-size:46px;margin:0}.sectionHead p{font-size:12px;color:var(--muted)}.filters{display:grid;grid-template-columns:minmax(260px,1fr) 180px 180px auto;gap:12px;margin-bottom:36px}.search{height:48px;border:1px solid var(--line);background:white;display:flex;align-items:center;padding:0 15px;gap:10px}.search span{font-size:24px;color:#78817c}.search input{border:0;outline:0;width:100%;background:transparent;font-size:12px}.filters select{border:1px solid var(--line);background:white;padding:0 14px;color:#4d5752;font-size:11px;outline:0}.toggle{display:flex;align-items:center;gap:9px;font-size:11px;padding:0 8px;white-space:nowrap}.toggle input{position:absolute;opacity:0}.toggle span{width:35px;height:20px;border-radius:20px;background:#cbd2ce;position:relative}.toggle span:after{content:"";width:14px;height:14px;border-radius:50%;background:white;position:absolute;top:3px;left:3px;transition:.2s}.toggle input:checked+span{background:#5f846f}.toggle input:checked+span:after{left:18px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}.card{background:white;border:1px solid #e4e7e5;min-width:0;box-shadow:0 8px 25px transparent;transition:.25s}.card:hover{transform:translateY(-4px);box-shadow:0 15px 40px #4b5a5220}.imageWrap{display:block;width:100%;height:290px;border:0;background:#f0f2ef;padding:0;position:relative;overflow:hidden;cursor:pointer}.imageWrap img{width:100%;height:100%;object-fit:cover;transition:.4s}.card:hover .imageWrap img{transform:scale(1.035)}.badge{position:absolute;left:12px;top:12px;padding:7px 9px;font-size:8px;text-transform:uppercase;letter-spacing:.1em}.badge.in{background:#f7fff8;color:#2d6948;border:1px solid #a3c5ad}.badge.out{background:#fff7f4;color:#995841;border:1px solid #e5bdae}.cardBody{padding:20px}.meta{display:flex;justify-content:space-between;color:#72907f;text-transform:uppercase;font-size:8px;letter-spacing:.12em}.card h3{font-family:Georgia;font-size:18px;line-height:1.28;font-weight:400;margin:13px 0 9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:46px}.cardBody>p{font-size:10px;color:#8a918d;margin:0 0 18px}.cardBody>button{border:0;border-top:1px solid var(--line);background:white;padding:15px 0 0;width:100%;display:flex;justify-content:space-between;font-size:10px;text-transform:uppercase;letter-spacing:.1em;cursor:pointer}.cardBody>button:hover{color:#668774}.loadMore{display:block;margin:42px auto 0;border:1px solid #8c9991;background:transparent;padding:15px 26px;font-size:11px;cursor:pointer}.loadMore:hover{background:white}.loadMore span{color:#849189;margin-left:8px}.empty{text-align:center;background:white;border:1px solid var(--line);padding:70px 20px}.empty b{font-family:Georgia;font-size:28px;font-weight:400}.empty p{color:var(--muted)}.empty button{background:var(--green);color:white;border:0;padding:12px 18px;cursor:pointer}footer{background:#18261f;color:white;min-height:120px;display:flex;align-items:center;justify-content:space-between;padding:35px clamp(24px,6vw,90px)}footer .brandmark img{filter:invert(1);mix-blend-mode:screen}footer p,footer a{font-size:10px;color:#a8b8af}.modalBackdrop{position:fixed;inset:0;background:#14211bd9;z-index:50;display:grid;place-items:center;padding:24px;backdrop-filter:blur(8px)}.modal{width:min(940px,100%);max-height:90vh;background:white;display:grid;grid-template-columns:1fr 1fr;position:relative;overflow:auto;box-shadow:0 30px 100px #0006}.close{position:absolute;right:15px;top:12px;border:0;background:white;width:36px;height:36px;border-radius:50%;font-size:26px;z-index:2;cursor:pointer}.modalImage{background:#eff1ee;min-height:520px}.modalImage img{width:100%;height:100%;object-fit:cover}.modalCopy{padding:60px 48px}.modalCopy h2{font-family:Georgia;font-size:37px;line-height:1.08;font-weight:400;margin:0 0 18px}.fullName{color:var(--muted);font-size:12px;line-height:1.6}.modal dl{border-top:1px solid var(--line);margin:28px 0}.modal dl div{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:13px 0;font-size:11px}.modal dt{color:var(--muted)}.modal dd{margin:0;font-weight:700}
+-@media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}.filters{grid-template-columns:1fr 160px 160px}.toggle{grid-column:1/-1}.hero{padding-inline:50px}.dial{width:360px}}
+-@media(max-width:760px){.topbar{height:72px;padding:0 18px}.topbar nav,.topbar .outlineBtn{display:none}.hero{grid-template-columns:1fr;padding:60px 24px 20px;min-height:auto}.hero h1{font-size:54px}.heroCopy>p{font-size:16px}.heroVisual{height:360px}.dial{width:300px}.stats{grid-template-columns:repeat(2,1fr);gap:28px 0}.stats div:nth-child(2){border:0}.catalog{padding:65px 16px}.sectionHead{align-items:start}.sectionHead h2{font-size:35px}.filters{grid-template-columns:1fr 1fr}.search{grid-column:1/-1}.filters select{height:46px}.grid{grid-template-columns:repeat(2,1fr);gap:12px}.imageWrap{height:220px}.cardBody{padding:15px}.card h3{font-size:16px}.modal{grid-template-columns:1fr}.modalImage{min-height:350px}.modalCopy{padding:35px 25px}footer{flex-direction:column;gap:22px;text-align:center}}
+-@media(max-width:480px){.grid{grid-template-columns:1fr}.imageWrap{height:360px}.filters{grid-template-columns:1fr}.filters select{width:100%}.hero h1{font-size:46px}.heroVisual{height:320px}.dial{width:260px}.sectionHead p{display:none}}
+-.cardLine{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 18px}.cardLine p{font-size:10px;color:#8a918d;margin:0}.cardLine strong{font-family:Georgia;font-size:16px;font-weight:400;white-space:nowrap}.modal dt{flex:0 0 92px}.modal dd{text-align:right;line-height:1.45}.modalPrice{font-family:Georgia;font-size:28px;color:#557863;margin:-6px 0 16px}
+-.privateBadge{border:1px solid #9eb4a8;background:#edf5ef;color:#315a44;padding:10px 15px;border-radius:99px;font-size:10px;text-transform:uppercase;letter-spacing:.12em}.staticBtn{border:0;cursor:pointer}.modalCopy .staticBtn{margin-top:4px}
+-.neutralPlaceholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(145deg,#eef2ee,#dce6df);color:#3a5547}.neutralPlaceholder:before,.neutralPlaceholder:after{content:"";position:absolute;border:1px solid #78938435;border-radius:50%}.neutralPlaceholder:before{width:72%;aspect-ratio:1}.neutralPlaceholder:after{width:52%;aspect-ratio:1}.neutralPlaceholder i{position:absolute;width:1px;height:60%;background:#75908045;transform:rotate(35deg)}.neutralPlaceholder b{font-family:Georgia;font-size:38px;letter-spacing:.18em;margin-left:.18em;z-index:1}.neutralPlaceholder small{text-align:center;text-transform:uppercase;letter-spacing:.16em;font-size:8px;line-height:1.8;margin-top:10px;z-index:1}.neutralPlaceholder.large{position:relative;width:100%;height:100%;min-height:520px}.neutralPlaceholder.large b{font-size:60px}
++:root {
++  --ink: #191816;
++  --muted: #6f6a64;
++  --soft-muted: #9a948d;
++  --line: #e5e1dc;
++  --paper: #ffffff;
++  --canvas: #f7f6f4;
++  --cream: #f4eee6;
++  --bronze: #b17a3d;
++  --bronze-dark: #8b5b29;
++  --green: #188454;
++  --amber: #d68a1f;
++  --blue: #4d8db3;
++  --violet: #8d63bd;
++  --shadow: 0 18px 55px rgba(37, 30, 23, 0.08);
++}
++
++* {
++  box-sizing: border-box;
++}
++
++html {
++  scroll-behavior: smooth;
++  scroll-padding-top: 84px;
++}
++
++body {
++  margin: 0;
++  background: var(--canvas);
++  color: var(--ink);
++  font-family: Arial, Helvetica, sans-serif;
++  -webkit-font-smoothing: antialiased;
++}
++
++button,
++input,
++select {
++  color: inherit;
++  font: inherit;
++}
++
++button,
++a {
++  -webkit-tap-highlight-color: transparent;
++}
++
++button {
++  cursor: pointer;
++}
++
++a {
++  color: inherit;
++  text-decoration: none;
++}
++
++svg {
++  display: block;
++  width: 1em;
++  height: 1em;
++}
++
++.shell {
++  width: min(1376px, calc(100% - 64px));
++  margin-inline: auto;
++}
++
++.site-header {
++  position: sticky;
++  z-index: 30;
++  top: 0;
++  height: 72px;
++  border-bottom: 1px solid rgba(217, 211, 204, 0.78);
++  background: rgba(255, 255, 255, 0.94);
++  backdrop-filter: blur(18px);
++}
++
++.header-inner {
++  display: flex;
++  height: 100%;
++  align-items: center;
++  justify-content: space-between;
++  gap: 36px;
++}
++
++.brandmark {
++  display: inline-flex;
++  min-width: max-content;
++  align-items: center;
++  gap: 12px;
++}
++
++.brandmark img {
++  width: 48px;
++  height: 48px;
++  border-radius: 50%;
++  object-fit: cover;
++  mix-blend-mode: multiply;
++}
++
++.brandmark span {
++  display: flex;
++  flex-direction: column;
++  gap: 4px;
++}
++
++.brandmark b {
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: 18px;
++  font-weight: 400;
++  letter-spacing: 0.18em;
++}
++
++.brandmark small {
++  color: #4e4a45;
++  font-size: 7px;
++  font-weight: 700;
++  letter-spacing: 0.34em;
++}
++
++.site-header nav {
++  display: flex;
++  align-items: center;
++  gap: clamp(24px, 3.3vw, 54px);
++  margin-left: auto;
++}
++
++.site-header nav a {
++  position: relative;
++  padding-block: 27px;
++  font-size: 10px;
++  font-weight: 700;
++  letter-spacing: 0.045em;
++  text-transform: uppercase;
++}
++
++.site-header nav a::after {
++  position: absolute;
++  right: 0;
++  bottom: 18px;
++  left: 0;
++  height: 1px;
++  background: var(--bronze);
++  content: "";
++  opacity: 0;
++  transform: scaleX(0.45);
++  transition: 180ms ease;
++}
++
++.site-header nav a:hover::after,
++.site-header nav a:focus-visible::after {
++  opacity: 1;
++  transform: scaleX(1);
++}
++
++.header-actions {
++  display: flex;
++  align-items: center;
++  gap: 22px;
++}
++
++.icon-link {
++  display: grid;
++  width: 32px;
++  height: 32px;
++  place-items: center;
++  font-size: 21px;
++}
++
++.access-button {
++  display: inline-flex;
++  height: 40px;
++  align-items: center;
++  gap: 8px;
++  border: 1px solid #b99a7a;
++  border-radius: 4px;
++  padding: 0 17px;
++  color: #4d3926;
++  font-size: 9px;
++  font-weight: 700;
++  letter-spacing: 0.07em;
++  text-transform: uppercase;
++}
++
++.access-button i,
++.live-label i,
++.footer-status i,
++.hero-sync i {
++  width: 6px;
++  height: 6px;
++  border-radius: 50%;
++  background: #1aa562;
++  box-shadow: 0 0 0 4px rgba(26, 165, 98, 0.1);
++}
++
++.hero-section {
++  position: relative;
++  overflow: hidden;
++  border-bottom: 1px solid var(--line);
++  background:
++    radial-gradient(circle at 73% 35%, rgba(255, 255, 255, 0.92), transparent 34%),
++    linear-gradient(105deg, #f7f3ed 0%, #fbfaf8 43%, #e9ded1 100%);
++}
++
++.hero-section::before {
++  position: absolute;
++  inset: 0;
++  background: repeating-linear-gradient(100deg, transparent 0 72px, rgba(107, 87, 65, 0.025) 73px 74px);
++  content: "";
++  pointer-events: none;
++}
++
++.hero-grid {
++  position: relative;
++  display: grid;
++  min-height: 320px;
++  grid-template-columns: minmax(430px, 0.9fr) minmax(520px, 1.1fr);
++  align-items: stretch;
++}
++
++.hero-copy {
++  position: relative;
++  z-index: 2;
++  display: flex;
++  align-items: flex-start;
++  justify-content: center;
++  flex-direction: column;
++  padding: 42px 0 46px;
++}
++
++.kicker,
++.section-label {
++  display: block;
++  color: #675f56;
++  font-size: 9px;
++  font-weight: 700;
++  letter-spacing: 0.14em;
++  text-transform: uppercase;
++}
++
++.hero-copy h1 {
++  max-width: 640px;
++  margin: 13px 0 12px;
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: clamp(40px, 4.1vw, 62px);
++  font-weight: 400;
++  letter-spacing: -0.035em;
++  line-height: 1.02;
++}
++
++.hero-copy p {
++  max-width: 560px;
++  margin: 0;
++  color: #514c47;
++  font-size: 13px;
++  line-height: 1.65;
++}
++
++.hero-buttons {
++  display: flex;
++  align-items: center;
++  gap: 14px;
++  margin-top: 25px;
++}
++
++.button {
++  display: inline-flex;
++  min-height: 42px;
++  align-items: center;
++  justify-content: center;
++  gap: 20px;
++  border: 1px solid transparent;
++  border-radius: 4px;
++  padding: 0 22px;
++  font-size: 9px;
++  font-weight: 700;
++  letter-spacing: 0.06em;
++  text-transform: uppercase;
++  transition: 180ms ease;
++}
++
++.button svg {
++  font-size: 16px;
++}
++
++.button--primary {
++  border-color: var(--bronze);
++  background: linear-gradient(135deg, #be8749, #a26b32);
++  color: white;
++  box-shadow: 0 10px 24px rgba(166, 106, 47, 0.18);
++}
++
++.button--primary:hover,
++.button--primary:focus-visible {
++  border-color: var(--bronze-dark);
++  background: var(--bronze-dark);
++  transform: translateY(-1px);
++}
++
++.button--ghost {
++  border-color: #c5a481;
++  background: rgba(255, 255, 255, 0.42);
++  color: #7b4f26;
++}
++
++.button--ghost:hover,
++.button--ghost:focus-visible {
++  background: white;
++}
++
++.button--dark {
++  width: 100%;
++  border-color: #292826;
++  background: #292826;
++  color: white;
++}
++
++.button--dark:hover,
++.button--dark:focus-visible {
++  background: #111;
++}
++
++.hero-visual {
++  position: relative;
++  min-height: 320px;
++}
++
++.hero-glow {
++  position: absolute;
++  top: -100px;
++  left: 14%;
++  width: 480px;
++  height: 480px;
++  border-radius: 50%;
++  background: rgba(255, 255, 255, 0.68);
++  filter: blur(3px);
++}
++
++.hero-watch-card {
++  position: absolute;
++  top: -24px;
++  right: 6%;
++  width: 76%;
++  height: 372px;
++  transform: rotate(-6deg);
++}
++
++.hero-watch-card .watch-placeholder {
++  min-height: 100%;
++  overflow: visible;
++  background: transparent;
++}
++
++.hero-watch-card .watch-case {
++  width: 31%;
++  border-width: 10px;
++  box-shadow: 0 30px 50px rgba(55, 44, 35, 0.28), inset 0 0 0 2px rgba(255,255,255,.9);
++}
++
++.hero-watch-card .watch-strap {
++  top: 39%;
++  width: 40%;
++  height: 23%;
++  border: 5px solid #9a958d;
++  background:
++    repeating-linear-gradient(90deg, rgba(255,255,255,.3) 0 13%, rgba(76,73,69,.18) 14% 16%),
++    linear-gradient(180deg, #dad8d3, #8e8d89 48%, #eceae5);
++  box-shadow: 0 20px 28px rgba(55, 44, 35, 0.17);
++}
++
++.hero-watch-card .watch-strap--top {
++  left: 8%;
++  transform: none;
++  border-radius: 12px 3px 3px 12px;
++}
++
++.hero-watch-card .watch-strap--bottom {
++  right: 8%;
++  bottom: auto;
++  left: auto;
++  transform: none;
++  border-radius: 3px 12px 12px 3px;
++}
++
++.hero-watch-card .watch-dial b {
++  font-size: 22px;
++}
++
++.hero-stamp {
++  position: absolute;
++  top: 28px;
++  right: -5px;
++  display: grid;
++  width: 95px;
++  height: 95px;
++  place-items: center;
++  border: 1px solid rgba(117, 91, 61, 0.15);
++  background: rgba(231, 215, 197, 0.5);
++  transform: rotate(5deg);
++}
++
++.hero-stamp img {
++  width: 62px;
++  height: 62px;
++  border-radius: 50%;
++  opacity: 0.32;
++  mix-blend-mode: multiply;
++}
++
++.hero-sync {
++  position: absolute;
++  z-index: 3;
++  right: 0;
++  bottom: 24px;
++  display: grid;
++  min-width: 160px;
++  border: 1px solid rgba(190, 177, 163, 0.75);
++  background: rgba(255, 255, 255, 0.88);
++  padding: 13px 16px;
++  box-shadow: 0 16px 38px rgba(62, 48, 34, 0.09);
++  backdrop-filter: blur(12px);
++}
++
++.hero-sync span {
++  display: flex;
++  align-items: center;
++  gap: 8px;
++  color: #5e5a55;
++  font-size: 8px;
++  font-weight: 700;
++  text-transform: uppercase;
++}
++
++.hero-sync strong {
++  margin-top: 5px;
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: 28px;
++  font-weight: 400;
++}
++
++.hero-sync small {
++  color: var(--soft-muted);
++  font-size: 8px;
++}
++
++.tracker {
++  padding-top: 19px;
++}
++
++.tracker-heading {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  margin-bottom: 14px;
++}
++
++.tracker-heading > div {
++  display: flex;
++  align-items: center;
++  gap: 19px;
++}
++
++.tracker-heading > a {
++  display: inline-flex;
++  align-items: center;
++  gap: 10px;
++  color: #5d5853;
++  font-size: 9px;
++}
++
++.tracker-heading > a svg {
++  font-size: 14px;
++}
++
++.live-label {
++  display: inline-flex;
++  align-items: center;
++  gap: 6px;
++  color: var(--green);
++  font-size: 8px;
++  font-weight: 700;
++  letter-spacing: 0.04em;
++  text-transform: uppercase;
++}
++
++.sync-label {
++  color: #85807b;
++  font-size: 8px;
++}
++
++.stat-grid {
++  display: grid;
++  grid-template-columns: repeat(5, minmax(0, 1fr));
++  gap: 14px;
++}
++
++.stat-grid article {
++  display: flex;
++  min-height: 82px;
++  align-items: center;
++  gap: 14px;
++  border: 1px solid var(--line);
++  border-radius: 7px;
++  background: rgba(255, 255, 255, 0.76);
++  padding: 14px 16px;
++}
++
++.stat-icon {
++  display: grid;
++  width: 42px;
++  height: 42px;
++  flex: 0 0 42px;
++  place-items: center;
++  border: 1px solid currentColor;
++  border-radius: 50%;
++  font-size: 23px;
++}
++
++.stat-icon.bronze { color: #9f7a5f; background: #f9f2ec; }
++.stat-icon.green { color: var(--green); background: #eef8f2; }
++.stat-icon.amber { color: var(--amber); background: #fff7e9; }
++.stat-icon.blue { color: var(--blue); background: #eef7fc; }
++.stat-icon.violet { color: var(--violet); background: #f7f0fd; }
++
++.stat-grid article > div {
++  min-width: 0;
++}
++
++.stat-grid small {
++  display: block;
++  overflow: hidden;
++  color: #514c47;
++  font-size: 8px;
++  font-weight: 700;
++  letter-spacing: 0.035em;
++  text-overflow: ellipsis;
++  text-transform: uppercase;
++  white-space: nowrap;
++}
++
++.stat-grid strong {
++  display: block;
++  margin: 2px 0 0;
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: 25px;
++  font-weight: 400;
++  line-height: 1;
++}
++
++.stat-grid p {
++  overflow: hidden;
++  margin: 4px 0 0;
++  color: #8c8680;
++  font-size: 8px;
++  text-overflow: ellipsis;
++  white-space: nowrap;
++}
++
++.inventory-section {
++  padding-block: 15px 18px;
++}
++
++.workspace-grid {
++  display: grid;
++  grid-template-columns: minmax(0, 3.08fr) minmax(290px, 1fr);
++  gap: 16px;
++}
++
++.inventory-main,
++.inventory-sidebar {
++  min-width: 0;
++}
++
++.filter-panel {
++  display: grid;
++  grid-template-columns: minmax(230px, 1.35fr) repeat(3, minmax(120px, 0.72fr)) auto;
++  gap: 8px;
++  border: 1px solid var(--line);
++  border-radius: 8px;
++  background: rgba(255, 255, 255, 0.75);
++  padding: 8px;
++}
++
++.search-field,
++.select-field {
++  position: relative;
++  display: flex;
++  min-width: 0;
++  height: 42px;
++  align-items: center;
++  border: 1px solid #ded9d3;
++  border-radius: 4px;
++  background: white;
++}
++
++.search-field {
++  gap: 10px;
++  padding: 0 12px;
++}
++
++.search-field svg {
++  flex: 0 0 auto;
++  color: #5e5a55;
++  font-size: 18px;
++}
++
++.search-field input {
++  width: 100%;
++  min-width: 0;
++  border: 0;
++  outline: 0;
++  background: transparent;
++  font-size: 9px;
++}
++
++.search-field input::placeholder {
++  color: #9a948e;
++}
++
++.select-field {
++  padding-top: 10px;
++}
++
++.select-field span {
++  position: absolute;
++  top: 5px;
++  left: 10px;
++  color: #918a83;
++  font-size: 6px;
++  font-weight: 700;
++  letter-spacing: 0.04em;
++  text-transform: uppercase;
++}
++
++.select-field select {
++  width: 100%;
++  height: 100%;
++  border: 0;
++  outline: 0;
++  background: transparent;
++  padding: 7px 8px 0;
++  font-size: 8px;
++}
++
++.filter-toggle {
++  display: inline-flex;
++  height: 42px;
++  align-items: center;
++  justify-content: center;
++  gap: 7px;
++  border: 1px solid #d9d3cc;
++  border-radius: 4px;
++  background: white;
++  padding: 0 12px;
++  font-size: 8px;
++  font-weight: 700;
++  white-space: nowrap;
++}
++
++.filter-toggle svg {
++  font-size: 15px;
++}
++
++.filter-toggle.active {
++  border-color: #91b9a4;
++  background: #eff8f3;
++  color: #176c46;
++}
++
++.inventory-toolbar {
++  display: flex;
++  height: 46px;
++  align-items: center;
++  justify-content: space-between;
++}
++
++.inventory-toolbar > div:first-child {
++  display: flex;
++  align-items: baseline;
++  gap: 8px;
++}
++
++.watch-count-icon {
++  align-self: center;
++  margin-right: 3px;
++  color: #7f6043;
++  font-size: 18px;
++}
++
++.inventory-toolbar strong {
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: 21px;
++  font-weight: 400;
++}
++
++.inventory-toolbar small {
++  color: #837d77;
++  font-size: 8px;
++}
++
++.view-switch {
++  display: flex;
++  align-items: center;
++  gap: 3px;
++}
++
++.view-switch button {
++  display: flex;
++  height: 30px;
++  align-items: center;
++  gap: 6px;
++  border: 1px solid transparent;
++  border-radius: 3px;
++  background: transparent;
++  padding: 0 9px;
++  color: #77716b;
++  font-size: 8px;
++}
++
++.view-switch button svg {
++  font-size: 14px;
++}
++
++.view-switch button.active {
++  border-color: #ddd8d2;
++  background: white;
++  color: #272522;
++}
++
++.product-grid {
++  display: grid;
++  grid-template-columns: repeat(5, minmax(0, 1fr));
++  gap: 9px;
++}
++
++.inventory-card {
++  min-width: 0;
++  overflow: hidden;
++  border: 1px solid #e1ddd8;
++  border-radius: 7px;
++  background: white;
++  transition: 180ms ease;
++}
++
++.inventory-card:hover {
++  border-color: #c9b9a9;
++  box-shadow: 0 12px 32px rgba(45, 36, 29, 0.08);
++  transform: translateY(-2px);
++}
++
++.product-visual {
++  display: block;
++  width: 100%;
++  height: 164px;
++  overflow: hidden;
++  border: 0;
++  border-bottom: 1px solid #ece9e5;
++  background: #f3f1ee;
++  padding: 0;
++}
++
++.product-info {
++  padding: 11px 11px 9px;
++}
++
++.product-title {
++  display: flex;
++  align-items: flex-start;
++  justify-content: space-between;
++  gap: 8px;
++}
++
++.product-title h3 {
++  overflow: hidden;
++  margin: 0;
++  font-size: 9px;
++  font-weight: 700;
++  line-height: 1.35;
++  text-overflow: ellipsis;
++  white-space: nowrap;
++}
++
++.product-title > span {
++  color: #8e8882;
++  font-size: 14px;
++  line-height: 1;
++}
++
++.product-info dl {
++  display: grid;
++  gap: 5px;
++  margin: 10px 0;
++}
++
++.product-info dl div {
++  display: grid;
++  min-width: 0;
++  grid-template-columns: 55px 1fr;
++  gap: 6px;
++  font-size: 7px;
++}
++
++.product-info dt {
++  color: #8c8680;
++}
++
++.product-info dd {
++  overflow: hidden;
++  margin: 0;
++  text-overflow: ellipsis;
++  white-space: nowrap;
++}
++
++.product-status {
++  display: flex;
++  min-height: 20px;
++  align-items: center;
++  justify-content: space-between;
++  gap: 5px;
++  font-size: 7px;
++}
++
++.product-status > span,
++.detail-summary span.in,
++.detail-summary span.low {
++  display: inline-flex;
++  align-items: center;
++  gap: 5px;
++  font-weight: 700;
++  white-space: nowrap;
++}
++
++.product-status > span i,
++.detail-summary span.in i,
++.detail-summary span.low i {
++  width: 5px;
++  height: 5px;
++  border-radius: 50%;
++  background: currentColor;
++}
++
++.product-status span.in,
++.detail-summary span.in { color: var(--green); }
++.product-status span.low,
++.detail-summary span.low { color: var(--amber); }
++
++.product-status small {
++  color: #69645f;
++  font-size: 7px;
++}
++
++.open-card {
++  display: flex;
++  width: 100%;
++  align-items: center;
++  justify-content: space-between;
++  border: 0;
++  border-top: 1px solid #eeeae6;
++  background: transparent;
++  margin-top: 8px;
++  padding: 8px 0 0;
++}
++
++.open-card span {
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: 14px;
++}
++
++.open-card svg {
++  color: #9b714a;
++  font-size: 15px;
++  transition: transform 180ms ease;
++}
++
++.open-card:hover svg {
++  transform: translateX(3px);
++}
++
++.watch-placeholder {
++  --watch-tone: #263d4a;
++  position: relative;
++  width: 100%;
++  height: 100%;
++  min-height: 160px;
++  overflow: hidden;
++  background:
++    radial-gradient(circle at 55% 35%, rgba(255, 255, 255, 0.95), transparent 32%),
++    linear-gradient(145deg, #f8f7f5, #e9e6e1);
++}
++
++.watch-placeholder::after {
++  position: absolute;
++  right: 8%;
++  bottom: 7%;
++  width: 48%;
++  height: 10px;
++  border-radius: 50%;
++  background: rgba(46, 39, 33, 0.13);
++  content: "";
++  filter: blur(8px);
++}
++
++.watch-strap {
++  position: absolute;
++  z-index: 1;
++  left: 50%;
++  width: 29%;
++  height: 39%;
++  border-right: 2px solid #9f9c96;
++  border-left: 2px solid #9f9c96;
++  background:
++    repeating-linear-gradient(0deg, transparent 0 18%, rgba(65, 63, 60, 0.19) 19% 22%),
++    linear-gradient(90deg, #c9c7c2, #f4f2ee 40%, #9c9b97 76%, #dcdbd7);
++  transform: translateX(-50%);
++}
++
++.watch-strap--top {
++  top: -13%;
++  border-radius: 3px 3px 0 0;
++}
++
++.watch-strap--bottom {
++  bottom: -13%;
++  border-radius: 0 0 3px 3px;
++}
++
++.watch-case {
++  position: absolute;
++  z-index: 2;
++  top: 50%;
++  left: 50%;
++  display: grid;
++  width: 52%;
++  aspect-ratio: 1;
++  place-items: center;
++  border: 7px solid #bab7b0;
++  border-radius: 50%;
++  background: linear-gradient(135deg, #f8f7f3, #8c8b87 45%, #efede8 68%, #9b9994);
++  box-shadow: 0 10px 20px rgba(53, 47, 41, 0.24), inset 0 0 0 2px rgba(255, 255, 255, 0.75);
++  transform: translate(-50%, -50%);
++}
++
++.watch-case::after {
++  position: absolute;
++  right: -13px;
++  width: 9px;
++  height: 24%;
++  border: 1px solid #7f7c77;
++  border-radius: 1px 4px 4px 1px;
++  background: linear-gradient(90deg, #9c9993, #eceae5, #888681);
++  content: "";
++}
++
++.watch-dial {
++  position: absolute;
++  inset: 8%;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  flex-direction: column;
++  border: 2px solid #111918;
++  border-radius: 50%;
++  background:
++    radial-gradient(circle at 45% 40%, rgba(255,255,255,.14), transparent 28%),
++    repeating-conic-gradient(from 0deg, rgba(255,255,255,.8) 0 1deg, transparent 1deg 30deg),
++    radial-gradient(circle, var(--watch-tone) 0 69%, #0b1010 70%);
++  box-shadow: inset 0 0 18px rgba(0,0,0,.55);
++  color: white;
++}
++
++.watch-dial::after {
++  position: absolute;
++  z-index: 3;
++  width: 8px;
++  height: 8px;
++  border: 2px solid rgba(255,255,255,.7);
++  border-radius: 50%;
++  background: #111;
++  content: "";
++}
++
++.watch-dial b {
++  position: absolute;
++  top: 25%;
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: 11px;
++  font-weight: 400;
++  letter-spacing: .12em;
++}
++
++.watch-dial small {
++  position: absolute;
++  top: 39%;
++  font-size: 3px;
++  letter-spacing: .22em;
++}
++
++.watch-hand {
++  position: absolute;
++  z-index: 2;
++  bottom: 50%;
++  left: calc(50% - 1px);
++  width: 2px;
++  height: 28%;
++  border-radius: 3px;
++  background: white;
++  transform-origin: bottom;
++}
++
++.watch-hand--hour {
++  height: 23%;
++  transform: rotate(118deg);
++}
++
++.watch-hand--minute {
++  width: 1px;
++  transform: rotate(18deg);
++}
++
++.watch-reference {
++  position: absolute;
++  z-index: 4;
++  right: 9px;
++  bottom: 8px;
++  color: rgba(47, 43, 39, 0.5);
++  font-size: 5px;
++  font-weight: 700;
++  letter-spacing: 0.12em;
++}
++
++.watch-placeholder--large {
++  min-height: 450px;
++}
++
++.watch-placeholder--large .watch-case {
++  width: 45%;
++  border-width: 11px;
++}
++
++.watch-placeholder--large .watch-strap {
++  width: 25%;
++}
++
++.product-grid--list {
++  grid-template-columns: 1fr;
++}
++
++.product-grid--list .inventory-card {
++  display: grid;
++  grid-template-columns: 170px 1fr;
++}
++
++.product-grid--list .product-visual {
++  height: 148px;
++  border-right: 1px solid #ece9e5;
++  border-bottom: 0;
++}
++
++.product-grid--list .product-info {
++  display: grid;
++  grid-template-columns: minmax(130px, 0.8fr) minmax(260px, 1.4fr) minmax(130px, 0.7fr);
++  align-items: center;
++  gap: 24px;
++  padding: 16px 20px;
++}
++
++.product-grid--list .product-info dl {
++  margin: 0;
++}
++
++.product-grid--list .product-status {
++  align-items: flex-start;
++  flex-direction: column;
++}
++
++.product-grid--list .open-card {
++  grid-column: 3;
++  margin: -25px 0 0;
++}
++
++.empty-state {
++  display: flex;
++  min-height: 430px;
++  align-items: center;
++  justify-content: center;
++  flex-direction: column;
++  border: 1px solid var(--line);
++  border-radius: 7px;
++  background: white;
++  text-align: center;
++}
++
++.empty-state > svg {
++  color: #b7afa7;
++  font-size: 44px;
++}
++
++.empty-state h3 {
++  margin: 18px 0 6px;
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: 26px;
++  font-weight: 400;
++}
++
++.empty-state p {
++  margin: 0 0 20px;
++  color: var(--muted);
++  font-size: 11px;
++}
++
++.pagination {
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  gap: 5px;
++  padding: 16px 0 0;
++}
++
++.pagination button {
++  display: grid;
++  width: 30px;
++  height: 30px;
++  place-items: center;
++  border: 1px solid transparent;
++  border-radius: 50%;
++  background: transparent;
++  font-size: 9px;
++}
++
++.pagination button.active {
++  border-color: var(--bronze);
++  background: var(--bronze);
++  color: white;
++}
++
++.pagination button:disabled {
++  cursor: default;
++  opacity: .28;
++}
++
++.pagination span {
++  padding-inline: 4px;
++  font-size: 9px;
++}
++
++.inventory-sidebar {
++  display: grid;
++  align-content: start;
++  gap: 10px;
++}
++
++.activity-panel,
++.insights-panel,
++.secure-note {
++  overflow: hidden;
++  border: 1px solid var(--line);
++  border-radius: 7px;
++  background: rgba(255, 255, 255, 0.82);
++}
++
++.activity-panel > header,
++.insights-panel > header {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  border-bottom: 1px solid #eeeae6;
++  padding: 13px 15px 10px;
++}
++
++.activity-panel h2,
++.insights-panel h2 {
++  margin: 0;
++  font-size: 8px;
++  letter-spacing: .055em;
++  text-transform: uppercase;
++}
++
++.insights-panel header span {
++  color: #8d8781;
++  font-size: 7px;
++}
++
++.activity-list {
++  display: grid;
++  padding: 4px 12px 7px;
++}
++
++.activity-list button {
++  display: grid;
++  min-width: 0;
++  grid-template-columns: 29px minmax(0, 1fr) auto;
++  align-items: center;
++  gap: 9px;
++  border: 0;
++  border-bottom: 1px solid #f0ede9;
++  background: transparent;
++  padding: 9px 0;
++  text-align: left;
++}
++
++.activity-list button:last-child {
++  border-bottom: 0;
++}
++
++.activity-icon {
++  display: grid;
++  width: 27px;
++  height: 27px;
++  place-items: center;
++  border-radius: 50%;
++  font-size: 14px;
++}
++
++.activity-icon--0 { color: var(--green); background: #edf8f2; }
++.activity-icon--1 { color: var(--blue); background: #edf7fb; }
++.activity-icon--2 { color: var(--amber); background: #fff6e6; }
++.activity-icon--3 { color: var(--violet); background: #f5effc; }
++
++.activity-list button > span:nth-child(2) {
++  display: grid;
++  min-width: 0;
++  gap: 3px;
++}
++
++.activity-list b,
++.activity-list small {
++  overflow: hidden;
++  text-overflow: ellipsis;
++  white-space: nowrap;
++}
++
++.activity-list b {
++  font-size: 7px;
++  font-weight: 700;
++}
++
++.activity-list small,
++.activity-list time {
++  color: #8d8781;
++  font-size: 6px;
++  font-style: normal;
++}
++
++.activity-list button:hover b {
++  color: var(--bronze-dark);
++}
++
++.insight-columns {
++  display: grid;
++  gap: 17px;
++  padding: 13px 15px 15px;
++}
++
++.insight-columns h3 {
++  margin: 0 0 8px;
++  color: #6c6660;
++  font-size: 7px;
++  letter-spacing: .05em;
++  text-transform: uppercase;
++}
++
++.bar-row {
++  display: grid;
++  grid-template-columns: 66px 1fr 18px;
++  align-items: center;
++  gap: 7px;
++  margin-top: 6px;
++}
++
++.bar-row span,
++.bar-row em {
++  overflow: hidden;
++  font-size: 6px;
++  font-style: normal;
++  text-overflow: ellipsis;
++  white-space: nowrap;
++}
++
++.bar-row em {
++  color: #756f69;
++  text-align: right;
++}
++
++.bar-row > i {
++  height: 3px;
++  overflow: hidden;
++  border-radius: 5px;
++  background: #ece8e3;
++}
++
++.bar-row > i b {
++  display: block;
++  height: 100%;
++  border-radius: inherit;
++  background: linear-gradient(90deg, #b8a28d, #5d5955);
++}
++
++.secure-note {
++  display: flex;
++  min-height: 62px;
++  align-items: center;
++  gap: 11px;
++  padding: 12px 15px;
++}
++
++.secure-note > svg {
++  flex: 0 0 auto;
++  color: var(--green);
++  font-size: 25px;
++}
++
++.secure-note > div {
++  display: grid;
++  gap: 3px;
++}
++
++.secure-note strong {
++  font-size: 8px;
++}
++
++.secure-note span {
++  color: #85807a;
++  font-size: 6px;
++  line-height: 1.4;
++}
++
++.trust-strip {
++  display: grid;
++  grid-template-columns: repeat(3, 1fr);
++  overflow: hidden;
++  border: 1px solid var(--line);
++  border-radius: 7px;
++  background: white;
++  margin-bottom: 18px;
++}
++
++.trust-strip article {
++  display: flex;
++  min-height: 64px;
++  align-items: center;
++  justify-content: center;
++  gap: 12px;
++  border-right: 1px solid #eeeae6;
++}
++
++.trust-strip article:last-child {
++  border-right: 0;
++}
++
++.trust-strip article > span {
++  display: grid;
++  width: 34px;
++  height: 34px;
++  place-items: center;
++  border-radius: 50%;
++  background: #eff7f2;
++  color: var(--green);
++  font-size: 18px;
++}
++
++.trust-strip article > div {
++  display: grid;
++  gap: 2px;
++}
++
++.trust-strip strong {
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: 13px;
++  font-weight: 400;
++}
++
++.trust-strip small {
++  color: #817b75;
++  font-size: 7px;
++}
++
++.site-footer {
++  border-top: 1px solid var(--line);
++  background: #fbfaf8;
++}
++
++.footer-grid {
++  display: grid;
++  grid-template-columns: 2fr repeat(3, 1fr);
++  gap: 55px;
++  padding-block: 26px 24px;
++}
++
++.footer-brand p {
++  max-width: 285px;
++  margin: 13px 0 0;
++  color: #77716b;
++  font-size: 8px;
++  line-height: 1.6;
++}
++
++.footer-grid > div:not(.footer-brand) {
++  display: flex;
++  align-items: flex-start;
++  flex-direction: column;
++  gap: 7px;
++}
++
++.footer-grid h2 {
++  margin: 2px 0 4px;
++  font-size: 8px;
++  letter-spacing: .08em;
++  text-transform: uppercase;
++}
++
++.footer-grid a,
++.footer-grid span {
++  color: #706a64;
++  font-size: 7px;
++}
++
++.footer-grid a:hover {
++  color: var(--bronze-dark);
++}
++
++.footer-status p {
++  display: flex;
++  align-items: center;
++  gap: 8px;
++  margin: 0;
++  color: var(--green);
++  font-size: 8px;
++  font-weight: 700;
++}
++
++.footer-status p i {
++  display: block;
++}
++
++.footer-status small {
++  color: #8a847e;
++  font-size: 7px;
++}
++
++.footer-bottom {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  border-top: 1px solid #ece8e3;
++  padding-block: 12px;
++  color: #85807a;
++  font-size: 7px;
++}
++
++.detail-backdrop {
++  position: fixed;
++  z-index: 80;
++  inset: 0;
++  display: grid;
++  place-items: center;
++  overflow-y: auto;
++  background: rgba(24, 22, 20, 0.68);
++  padding: 24px;
++  backdrop-filter: blur(8px);
++}
++
++.detail-modal {
++  position: relative;
++  width: min(1180px, 100%);
++  max-height: calc(100vh - 48px);
++  overflow-y: auto;
++  border-radius: 6px;
++  background: #fbfaf8;
++  padding: 22px 24px 26px;
++  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.32);
++}
++
++.detail-close {
++  position: absolute;
++  z-index: 3;
++  top: 16px;
++  right: 18px;
++  display: grid;
++  width: 36px;
++  height: 36px;
++  place-items: center;
++  border: 1px solid #ddd7d1;
++  border-radius: 50%;
++  background: white;
++  font-size: 16px;
++}
++
++.detail-breadcrumbs {
++  margin-bottom: 17px;
++  color: #8e8881;
++  font-size: 8px;
++}
++
++.detail-breadcrumbs span {
++  margin-inline: 8px;
++  color: #bbb4ad;
++}
++
++.detail-layout {
++  display: grid;
++  grid-template-columns: minmax(0, 1.15fr) minmax(370px, .85fr);
++  gap: 40px;
++}
++
++.detail-gallery {
++  display: grid;
++  grid-template-columns: 72px minmax(0, 1fr);
++  grid-template-rows: 82px 82px;
++  gap: 9px 12px;
++}
++
++.detail-thumb {
++  overflow: hidden;
++  border: 1px solid #ded8d1;
++  border-radius: 4px;
++  background: #f0eeeb;
++}
++
++.detail-thumb.active {
++  border-color: var(--bronze);
++}
++
++.detail-thumb .watch-placeholder {
++  min-height: 100%;
++}
++
++.detail-thumb .watch-reference,
++.detail-thumb .watch-dial b,
++.detail-thumb .watch-dial small {
++  display: none;
++}
++
++.detail-thumb > span {
++  display: grid;
++  width: 100%;
++  height: 100%;
++  place-items: center;
++  color: #a59e97;
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: 15px;
++}
++
++.detail-image {
++  position: relative;
++  grid-row: 1 / 4;
++  grid-column: 2;
++  min-height: 515px;
++  overflow: hidden;
++  border-radius: 5px;
++  background: #eeece8;
++}
++
++.detail-image > button {
++  position: absolute;
++  right: 16px;
++  bottom: 16px;
++  display: grid;
++  width: 42px;
++  height: 42px;
++  place-items: center;
++  border: 0;
++  border-radius: 50%;
++  background: white;
++  box-shadow: 0 9px 25px rgba(50, 43, 36, .13);
++  font-size: 18px;
++}
++
++.detail-copy {
++  padding: 14px 12px 0 0;
++}
++
++.detail-copy h2 {
++  margin: 12px 0 4px;
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: clamp(35px, 3.4vw, 52px);
++  font-weight: 400;
++  letter-spacing: -.035em;
++}
++
++.detail-subtitle {
++  margin: 0;
++  color: #77716b;
++  font-size: 11px;
++}
++
++.detail-summary {
++  display: flex;
++  align-items: flex-start;
++  justify-content: space-between;
++  border-top: 1px solid #e4dfd9;
++  border-bottom: 1px solid #e4dfd9;
++  margin: 25px 0 22px;
++  padding: 18px 0;
++}
++
++.detail-summary > div {
++  display: grid;
++  gap: 5px;
++}
++
++.detail-summary small {
++  color: #827c76;
++  font-size: 8px;
++  text-transform: uppercase;
++}
++
++.detail-summary strong {
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: 30px;
++  font-weight: 400;
++}
++
++.detail-summary span.in,
++.detail-summary span.low {
++  font-size: 8px;
++}
++
++.record-id {
++  border: 1px solid #ddd7d0;
++  border-radius: 99px;
++  padding: 7px 10px;
++  color: #716b65;
++  font-size: 8px;
++}
++
++.detail-facts {
++  display: grid;
++  gap: 0;
++  margin: 0 0 24px;
++}
++
++.detail-facts div {
++  display: grid;
++  grid-template-columns: 140px 1fr;
++  border-bottom: 1px solid #eeeae6;
++  padding: 10px 0;
++  font-size: 9px;
++}
++
++.detail-facts dt {
++  color: #817b75;
++}
++
++.detail-facts dd {
++  margin: 0;
++  font-weight: 700;
++  text-align: right;
++}
++
++.detail-assurances {
++  display: grid;
++  grid-template-columns: repeat(3, 1fr);
++  gap: 10px;
++  margin-top: 20px;
++}
++
++.detail-assurances span {
++  display: flex;
++  min-width: 0;
++  align-items: center;
++  gap: 6px;
++  color: #69635d;
++  font-size: 6px;
++  line-height: 1.35;
++}
++
++.detail-assurances svg {
++  flex: 0 0 auto;
++  color: #82705f;
++  font-size: 17px;
++}
++
++button:focus-visible,
++a:focus-visible,
++input:focus-visible,
++select:focus-visible {
++  outline: 2px solid rgba(177, 122, 61, .58);
++  outline-offset: 2px;
++}
++
++@media (max-width: 1250px) {
++  .shell { width: min(1180px, calc(100% - 44px)); }
++  .site-header nav { gap: 24px; }
++  .hero-grid { grid-template-columns: minmax(380px, .92fr) minmax(470px, 1.08fr); }
++  .workspace-grid { grid-template-columns: minmax(0, 2.7fr) minmax(270px, 1fr); }
++  .filter-panel { grid-template-columns: minmax(210px, 1.35fr) repeat(2, minmax(116px, .7fr)) auto; }
++  .filter-panel .select-field:nth-of-type(4) { display: none; }
++  .product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
++}
++
++@media (max-width: 1020px) {
++  .site-header nav a:nth-child(3),
++  .site-header nav a:nth-child(4) { display: none; }
++  .hero-grid { grid-template-columns: minmax(350px, .85fr) minmax(390px, 1.15fr); }
++  .hero-watch-card { right: -4%; width: 92%; }
++  .stat-grid { grid-template-columns: repeat(3, 1fr); }
++  .workspace-grid { grid-template-columns: 1fr; }
++  .inventory-sidebar { grid-template-columns: 1fr 1fr; }
++  .secure-note { grid-column: 1 / -1; }
++  .activity-list { min-height: 243px; }
++  .product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
++  .footer-grid { gap: 30px; }
++}
++
++@media (max-width: 820px) {
++  .shell { width: min(720px, calc(100% - 32px)); }
++  .site-header { height: 66px; }
++  .brandmark img { width: 43px; height: 43px; }
++  .brandmark b { font-size: 16px; }
++  .site-header nav { display: none; }
++  .header-actions { margin-left: auto; }
++  .hero-grid { min-height: 600px; grid-template-columns: 1fr; }
++  .hero-copy { min-height: 295px; padding: 35px 0 20px; }
++  .hero-visual { min-height: 305px; }
++  .hero-watch-card { top: -38px; right: 2%; width: 82%; height: 340px; }
++  .hero-stamp { right: 0; }
++  .hero-sync { right: 3%; }
++  .filter-panel { grid-template-columns: 1fr 1fr; }
++  .search-field { grid-column: 1 / -1; }
++  .filter-toggle { height: 42px; }
++  .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
++  .product-grid--list .product-info { grid-template-columns: 1fr 1.2fr; }
++  .product-grid--list .product-status { display: none; }
++  .product-grid--list .open-card { grid-column: 2; margin: -20px 0 0; }
++  .trust-strip { grid-template-columns: 1fr; }
++  .trust-strip article { justify-content: flex-start; border-right: 0; border-bottom: 1px solid #eeeae6; padding-inline: 24px; }
++  .trust-strip article:last-child { border-bottom: 0; }
++  .footer-grid { grid-template-columns: 2fr 1fr 1fr; }
++  .footer-status { display: none !important; }
++  .detail-modal { padding: 20px; }
++  .detail-layout { grid-template-columns: 1fr; gap: 20px; }
++  .detail-image { min-height: 460px; }
++  .detail-copy { padding: 8px 0 0; }
++}
++
++@media (max-width: 620px) {
++  .access-button { padding-inline: 11px; font-size: 7px; }
++  .icon-link { display: none; }
++  .hero-grid { min-height: 580px; }
++  .hero-copy h1 { font-size: 39px; }
++  .hero-copy p { font-size: 11px; }
++  .hero-buttons { align-items: stretch; flex-direction: column; width: 100%; }
++  .hero-buttons .button { width: 100%; }
++  .hero-visual { min-height: 285px; }
++  .hero-watch-card { right: -7%; width: 108%; height: 315px; }
++  .hero-watch-card .watch-case { width: 34%; }
++  .hero-stamp { display: none; }
++  .hero-sync { bottom: 12px; }
++  .tracker-heading > div { gap: 10px; }
++  .sync-label { display: none; }
++  .stat-grid { grid-template-columns: 1fr 1fr; }
++  .stat-grid article { min-height: 74px; padding: 11px; }
++  .stat-grid article:last-child { grid-column: 1 / -1; }
++  .stat-icon { width: 37px; height: 37px; flex-basis: 37px; font-size: 20px; }
++  .filter-panel { grid-template-columns: 1fr; }
++  .search-field { grid-column: auto; }
++  .inventory-toolbar { height: 54px; }
++  .view-switch button span { display: none; }
++  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
++  .product-visual { height: 185px; }
++  .product-grid--list .inventory-card { grid-template-columns: 125px 1fr; }
++  .product-grid--list .product-visual { height: 142px; }
++  .product-grid--list .product-info { display: block; padding: 12px; }
++  .product-grid--list .product-info dl { margin-block: 9px; }
++  .product-grid--list .open-card { margin: 6px 0 0; }
++  .inventory-sidebar { grid-template-columns: 1fr; }
++  .secure-note { grid-column: auto; }
++  .activity-list { min-height: 0; }
++  .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px 18px; }
++  .footer-brand { grid-column: 1 / -1; }
++  .detail-backdrop { padding: 0; }
++  .detail-modal { width: 100%; max-height: 100vh; min-height: 100vh; border-radius: 0; padding: 18px 14px 24px; }
++  .detail-breadcrumbs { padding-right: 45px; line-height: 1.5; }
++  .detail-gallery { grid-template-columns: 52px minmax(0, 1fr); grid-template-rows: 62px 62px; gap: 7px; }
++  .detail-image { min-height: 390px; }
++  .detail-image .watch-placeholder--large { min-height: 390px; }
++  .detail-copy h2 { font-size: 35px; }
++}
++
++@media (max-width: 420px) {
++  .shell { width: calc(100% - 24px); }
++  .brandmark { gap: 8px; }
++  .brandmark img { width: 38px; height: 38px; }
++  .brandmark b { font-size: 13px; }
++  .brandmark small { font-size: 5px; }
++  .access-button { height: 34px; padding-inline: 9px; }
++  .hero-copy h1 { font-size: 35px; }
++  .product-grid { grid-template-columns: 1fr; }
++  .product-visual { height: 270px; }
++  .product-info { padding: 14px; }
++  .product-info dl div { font-size: 8px; }
++  .stat-grid { grid-template-columns: 1fr; }
++  .stat-grid article:last-child { grid-column: auto; }
++  .tracker-heading > a { display: none; }
++  .footer-grid > div:nth-child(3) { display: none; }
++  .footer-grid { grid-template-columns: 1fr; }
++  .detail-gallery { display: block; }
++  .detail-thumb { display: none; }
++  .detail-image { min-height: 340px; }
++  .detail-image .watch-placeholder--large { min-height: 340px; }
++  .detail-facts div { grid-template-columns: 110px 1fr; }
++  .detail-assurances { grid-template-columns: 1fr; }
++}
++
++@media (prefers-reduced-motion: reduce) {
++  html { scroll-behavior: auto; }
++  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
++}
+diff --git a/app/layout.tsx b/app/layout.tsx
+index 56d6591..d7e4f83 100644
+--- a/app/layout.tsx
++++ b/app/layout.tsx
+@@ -9,8 +9,8 @@ const basePath =
+     : "";
+ 
+ export const metadata: Metadata = {
+-  title: "Внутренний складской реестр EW",
+-  description: "Реестр складских позиций EW: артикулы, остатки, категории и зоны хранения.",
++  title: "EW Watches — закрытый инвентарь",
++  description: "Премиальный складской реестр EW Watches: артикулы, актуальные остатки, категории и зоны хранения.",
+   icons: {
+     icon: `${basePath}/favicon.svg`,
+     shortcut: `${basePath}/favicon.svg`,
+diff --git a/app/page.tsx b/app/page.tsx
+index 65f5afc..340cabf 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -1,6 +1,7 @@
+ "use client";
+ 
+-import { useMemo, useState } from "react";
++import Image from "next/image";
++import { useEffect, useMemo, useState, type CSSProperties } from "react";
+ import inventoryA from "./inventory-a.json";
+ import inventoryB from "./inventory-b.json";
+ 
+@@ -8,88 +9,312 @@ const LOGO = "data:image/webp;base64,UklGRuYEAABXRUJQVlA4INoEAAAwGgCdASq0AIcAPpF
+ 
+ const inventory = [...inventoryA, ...inventoryB];
+ type Item = (typeof inventory)[number];
++type IconName =
++  | "search"
++  | "arrow"
++  | "box"
++  | "check"
++  | "alert"
++  | "bookmark"
++  | "sparkle"
++  | "filter"
++  | "grid"
++  | "list"
++  | "clock"
++  | "shield"
++  | "tag"
++  | "globe"
++  | "close";
++
++const ALL_CATEGORIES = "Все категории";
++const ALL_ZONES = "Все зоны";
++const PAGE_SIZE = 10;
++const tones = ["#263d4a", "#7a6754", "#2f4639", "#675a4e", "#33444f"];
++
++function Icon({ name }: { name: IconName }) {
++  const common = { fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
++  return (
++    <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>
++      {name === "search" && <><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></>}
++      {name === "arrow" && <><path d="M5 12h14" /><path d="m14 7 5 5-5 5" /></>}
++      {name === "box" && <><path d="m4 7 8-4 8 4-8 4-8-4Z" /><path d="M4 7v10l8 4 8-4V7M12 11v10" /></>}
++      {name === "check" && <><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16.5 8" /></>}
++      {name === "alert" && <><path d="M12 3 2.8 20h18.4L12 3Z" /><path d="M12 9v4.5M12 17h.01" /></>}
++      {name === "bookmark" && <path d="M7 3h10v18l-5-3.5L7 21V3Z" />}
++      {name === "sparkle" && <><path d="M12 2c.7 5.2 2.8 7.3 8 8-5.2.7-7.3 2.8-8 8-.7-5.2-2.8-7.3-8-8 5.2-.7 7.3-2.8 8-8Z" /><path d="M19 16v5M16.5 18.5h5" /></>}
++      {name === "filter" && <><path d="M3 5h18l-7 8v5l-4 2v-7L3 5Z" /></>}
++      {name === "grid" && <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>}
++      {name === "list" && <><path d="M9 6h12M9 12h12M9 18h12" /><path d="M4 6h.01M4 12h.01M4 18h.01" /></>}
++      {name === "clock" && <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>}
++      {name === "shield" && <><path d="M12 2.5 20 6v5.5c0 5-3.2 8.2-8 10-4.8-1.8-8-5-8-10V6l8-3.5Z" /><path d="m8.5 12 2.2 2.2 4.8-5" /></>}
++      {name === "tag" && <><path d="m3 12 9 9 9-9-9-9H3v9Z" /><circle cx="8" cy="8" r="1" /></>}
++      {name === "globe" && <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" /></>}
++      {name === "close" && <><path d="m5 5 14 14M19 5 5 19" /></>}
++    </svg>
++  );
++}
++
++function WatchPlaceholder({ item, large = false }: { item?: Item; large?: boolean }) {
++  const tone = item ? tones[Number(item.inventory_id) % tones.length] : tones[0];
++  return (
++    <div className={`watch-placeholder${large ? " watch-placeholder--large" : ""}`} style={{ "--watch-tone": tone } as CSSProperties} aria-hidden="true">
++      <span className="watch-strap watch-strap--top" />
++      <span className="watch-case">
++        <span className="watch-dial"><i className="watch-hand watch-hand--hour" /><i className="watch-hand watch-hand--minute" /><b>EW</b><small>PRIVATE</small></span>
++      </span>
++      <span className="watch-strap watch-strap--bottom" />
++      {item && <span className="watch-reference">{item.sn}</span>}
++    </div>
++  );
++}
++
++function statusClass(item: Item) {
++  return (item.available_units ?? 0) <= 2 ? "low" : "in";
++}
++
++function statusText(item: Item) {
++  return (item.available_units ?? 0) <= 2 ? "Малый остаток" : "В наличии";
++}
+ 
+ export default function Home() {
+   const [query, setQuery] = useState("");
+-  const [category, setCategory] = useState("Все категории");
+-  const [zone, setZone] = useState("Все зоны");
++  const [category, setCategory] = useState(ALL_CATEGORIES);
++  const [zone, setZone] = useState(ALL_ZONES);
+   const [stockOnly, setStockOnly] = useState(false);
+-  const [visible, setVisible] = useState(24);
++  const [sort, setSort] = useState("newest");
++  const [view, setView] = useState<"grid" | "list">("grid");
++  const [page, setPage] = useState(1);
+   const [selected, setSelected] = useState<Item | null>(null);
+ 
+-  const categories = useMemo(() => ["Все категории", ...Array.from(new Set(inventory.map(x => x.category).filter(Boolean))).sort()], []);
+-  const zones = useMemo(() => ["Все зоны", ...Array.from(new Set(inventory.map(x => x.storage_zone).filter(Boolean))).sort()], []);
++  const categories = useMemo(() => [ALL_CATEGORIES, ...Array.from(new Set(inventory.map(item => item.category).filter(Boolean))).sort()], []);
++  const zones = useMemo(() => [ALL_ZONES, ...Array.from(new Set(inventory.map(item => item.storage_zone).filter(Boolean))).sort()], []);
++  const units = useMemo(() => inventory.reduce((sum, item) => sum + (item.available_units || 0), 0), []);
++  const categoryCount = categories.length - 1;
++  const zoneCount = zones.length - 1;
++  const lowStock = useMemo(() => inventory.filter(item => (item.available_units ?? 0) <= 2).length, []);
++
++  const categoryBreakdown = useMemo(() => {
++    const counts = new Map<string, number>();
++    inventory.forEach(item => counts.set(item.category, (counts.get(item.category) ?? 0) + 1));
++    return Array.from(counts, ([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 5);
++  }, []);
++
++  const zoneBreakdown = useMemo(() => {
++    const counts = new Map<string, number>();
++    inventory.forEach(item => counts.set(item.storage_zone, (counts.get(item.storage_zone) ?? 0) + 1));
++    return Array.from(counts, ([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 5);
++  }, []);
++
++  const activityItems = useMemo(() => {
++    const criticalItem = inventory.find(item => (item.available_units ?? 0) <= 2) ?? inventory[2];
++    return [inventory[0], inventory[1], criticalItem, inventory[3], inventory[4]];
++  }, []);
++
+   const filtered = useMemo(() => {
+-    const q = query.toLowerCase().trim();
+-    return inventory.filter(item =>
+-      (!q || `${item.item_name} ${item.sn} ${item.category} ${item.storage_zone}`.toLowerCase().includes(q)) &&
+-      (category === "Все категории" || item.category === category) &&
+-      (zone === "Все зоны" || item.storage_zone === zone) &&
++    const normalized = query.toLowerCase().trim();
++    const result = inventory.filter(item =>
++      (!normalized || `${item.item_name} ${item.sn} ${item.category} ${item.storage_zone}`.toLowerCase().includes(normalized)) &&
++      (category === ALL_CATEGORIES || item.category === category) &&
++      (zone === ALL_ZONES || item.storage_zone === zone) &&
+       (!stockOnly || item.stock_status === "IN STOCK")
+     );
+-  }, [query, category, zone, stockOnly]);
+-  const units = inventory.reduce((sum, x) => sum + (x.available_units || 0), 0);
+-  const categoryCount = new Set(inventory.map(x => x.category).filter(Boolean)).size;
++    return [...result].sort((a, b) => {
++      if (sort === "sku") return a.sn.localeCompare(b.sn);
++      if (sort === "category") return a.category.localeCompare(b.category) || a.sn.localeCompare(b.sn);
++      if (sort === "stock") return (b.available_units ?? 0) - (a.available_units ?? 0);
++      return Number(b.inventory_id) - Number(a.inventory_id);
++    });
++  }, [query, category, zone, stockOnly, sort]);
++
++  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
++  const currentPage = Math.min(page, pageCount);
++  const visibleItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
++  const pageNumbers = Array.from({ length: Math.min(5, pageCount) }, (_, index) => {
++    const start = Math.min(Math.max(currentPage - 2, 1), Math.max(pageCount - 4, 1));
++    return start + index;
++  });
++
++  useEffect(() => {
++    if (!selected) return;
++    const previousOverflow = document.body.style.overflow;
++    const closeOnEscape = (event: KeyboardEvent) => event.key === "Escape" && setSelected(null);
++    document.body.style.overflow = "hidden";
++    window.addEventListener("keydown", closeOnEscape);
++    return () => {
++      document.body.style.overflow = previousOverflow;
++      window.removeEventListener("keydown", closeOnEscape);
++    };
++  }, [selected]);
++
++  function updateFilters(update: () => void) {
++    update();
++    setPage(1);
++  }
+ 
+   function resetFilters() {
+-    setQuery(""); setCategory("Все категории"); setZone("Все зоны"); setStockOnly(false); setVisible(24);
++    setQuery("");
++    setCategory(ALL_CATEGORIES);
++    setZone(ALL_ZONES);
++    setStockOnly(false);
++    setSort("newest");
++    setPage(1);
+   }
+ 
+   return (
+-    <main>
+-      <header className="topbar">
+-        <a className="brandmark" href="#top" aria-label="EW Inventory — наверх">
+-          <img src={LOGO} alt="EW" />
+-          <span><b>EW</b><small>внутренний учёт</small></span>
+-        </a>
+-        <nav><a href="#registry">Реестр</a><a href="#summary">Сводка</a></nav>
+-        <span className="privateBadge">Закрытый доступ</span>
++    <main id="top">
++      <header className="site-header">
++        <div className="shell header-inner">
++          <a className="brandmark" href="#top" aria-label="EW Watches — наверх">
++            <Image src={LOGO} alt="Логотип EW Watches" width={48} height={48} unoptimized />
++            <span><b>EW WATCHES</b><small>PRIVATE INVENTORY</small></span>
++          </a>
++          <nav aria-label="Основная навигация">
++            <a href="#inventory">Инвентарь</a>
++            <a href="#summary">Сводка</a>
++            <a href="#insights">Категории</a>
++            <a href="#about">О системе</a>
++          </nav>
++          <div className="header-actions">
++            <a className="icon-link" href="#inventory" aria-label="Перейти к поиску"><Icon name="search" /></a>
++            <span className="access-button"><i /> Закрытый доступ</span>
++          </div>
++        </div>
+       </header>
+ 
+-      <section className="hero" id="top">
+-        <div className="heroCopy">
+-          <span className="eyebrow">Внутренний документ · обновлено 06 августа 2026</span>
+-          <h1>Складской<br /><em>реестр EW.</em></h1>
+-          <p>Закрытая рабочая система учёта: наличие, внутренние артикулы, категории и зоны хранения.</p>
+-          <a className="primaryBtn" href="#registry">Открыть реестр <span>↓</span></a>
+-        </div>
+-        <div className="heroVisual" aria-hidden="true">
+-          <div className="dial"><span className="twelve">12</span><i className="hand one" /><i className="hand two" /><b>EW</b><small>INTERNAL</small></div>
+-          <div className="floatCard"><span>Учтено на складе</span><strong>{units.toLocaleString("ru-RU")}</strong><small>единиц</small></div>
++      <section className="hero-section">
++        <div className="shell hero-grid">
++          <div className="hero-copy">
++            <span className="kicker">Внутренний реестр · обновлено 06 августа 2026</span>
++            <h1>Точный учёт.<br />Без лишнего шума.</h1>
++            <p>Актуальные остатки по {inventory.length} складским позициям: артикулы, категории и зоны хранения в одном закрытом интерфейсе.</p>
++            <div className="hero-buttons">
++              <a className="button button--primary" href="#inventory">Открыть инвентарь <Icon name="arrow" /></a>
++              <a className="button button--ghost" href="#summary">Посмотреть сводку</a>
++            </div>
++          </div>
++          <div className="hero-visual" aria-hidden="true">
++            <div className="hero-glow" />
++            <div className="hero-watch-card"><WatchPlaceholder large /></div>
++            <div className="hero-stamp"><Image src={LOGO} alt="" width={62} height={62} unoptimized /></div>
++            <div className="hero-sync"><span><i /> Система активна</span><strong>{units}</strong><small>единиц на учёте</small></div>
++          </div>
+         </div>
+       </section>
+ 
+-      <section className="stats" id="summary">
+-        <div><strong>{inventory.length}</strong><span>складских позиций</span></div>
+-        <div><strong>{units}</strong><span>единиц учтено</span></div>
+-        <div><strong>{categoryCount}</strong><span>категорий</span></div>
+-        <div><strong>Внутр.</strong><span>режим доступа</span></div>
++      <section className="tracker shell" id="summary">
++        <div className="tracker-heading">
++          <div><span className="section-label">Live inventory tracker</span><span className="live-label"><i /> Live</span><span className="sync-label">Синхронизировано: 3 дня назад</span></div>
++          <a href="#inventory">Весь инвентарь <Icon name="arrow" /></a>
++        </div>
++        <div className="stat-grid">
++          <article><span className="stat-icon bronze"><Icon name="box" /></span><div><small>Всего позиций</small><strong>{inventory.length}</strong><p>Все складские записи</p></div></article>
++          <article><span className="stat-icon green"><Icon name="check" /></span><div><small>Единиц в наличии</small><strong>{units}</strong><p>По текущей выгрузке</p></div></article>
++          <article><span className="stat-icon amber"><Icon name="alert" /></span><div><small>Малый остаток</small><strong>{lowStock}</strong><p>2 единицы или меньше</p></div></article>
++          <article><span className="stat-icon blue"><Icon name="bookmark" /></span><div><small>Зон хранения</small><strong>{zoneCount}</strong><p>Активные складские зоны</p></div></article>
++          <article><span className="stat-icon violet"><Icon name="sparkle" /></span><div><small>Категорий</small><strong>{categoryCount}</strong><p>В текущем реестре</p></div></article>
++        </div>
+       </section>
+ 
+-      <section className="catalog" id="registry">
+-        <div className="sectionHead"><div><span className="eyebrow">Внутренний учёт</span><h2>Складские позиции</h2></div><p>Найдено <b>{filtered.length}</b> позиций</p></div>
+-        <div className="filters">
+-          <label className="search"><span>⌕</span><input value={query} onChange={e => {setQuery(e.target.value);setVisible(24)}} placeholder="Внутренний артикул или категория" /></label>
+-          <select value={category} onChange={e => {setCategory(e.target.value);setVisible(24)}} aria-label="Категория">{categories.map(x => <option key={x}>{x}</option>)}</select>
+-          <select value={zone} onChange={e => {setZone(e.target.value);setVisible(24)}} aria-label="Зона хранения">{zones.map(x => <option key={x}>{x}</option>)}</select>
+-          <label className="toggle"><input type="checkbox" checked={stockOnly} onChange={e => setStockOnly(e.target.checked)} /><span />Только в наличии</label>
++      <section className="inventory-section shell" id="inventory">
++        <div className="workspace-grid">
++          <div className="inventory-main">
++            <div className="filter-panel">
++              <label className="search-field"><Icon name="search" /><input value={query} onChange={event => updateFilters(() => setQuery(event.target.value))} placeholder="Поиск по артикулу, категории или зоне…" aria-label="Поиск по реестру" /></label>
++              <label className="select-field"><span>Категория</span><select value={category} onChange={event => updateFilters(() => setCategory(event.target.value))}>{categories.map(option => <option key={option}>{option}</option>)}</select></label>
++              <label className="select-field"><span>Зона</span><select value={zone} onChange={event => updateFilters(() => setZone(event.target.value))}>{zones.map(option => <option key={option}>{option}</option>)}</select></label>
++              <label className="select-field"><span>Сортировка</span><select value={sort} onChange={event => updateFilters(() => setSort(event.target.value))}><option value="newest">Сначала новые</option><option value="stock">По остатку</option><option value="sku">По артикулу</option><option value="category">По категории</option></select></label>
++              <button className={`filter-toggle${stockOnly ? " active" : ""}`} onClick={() => updateFilters(() => setStockOnly(value => !value))} aria-pressed={stockOnly}><Icon name="filter" /> В наличии</button>
++            </div>
++
++            <div className="inventory-toolbar">
++              <div><span className="watch-count-icon"><Icon name="clock" /></span><strong>{filtered.length}</strong><small>позиций найдено</small></div>
++              <div className="view-switch" aria-label="Вид каталога"><button className={view === "grid" ? "active" : ""} onClick={() => setView("grid")} aria-label="Сетка"><Icon name="grid" /><span>Сетка</span></button><button className={view === "list" ? "active" : ""} onClick={() => setView("list")} aria-label="Список"><Icon name="list" /><span>Список</span></button></div>
++            </div>
++
++            {visibleItems.length ? (
++              <div className={`product-grid${view === "list" ? " product-grid--list" : ""}`}>
++                {visibleItems.map(item => (
++                  <article className="inventory-card" key={item.sn}>
++                    <button className="product-visual" onClick={() => setSelected(item)} aria-label={`Открыть карточку ${item.sn}`}><WatchPlaceholder item={item} /></button>
++                    <div className="product-info">
++                      <div className="product-title"><h3>{item.sn}</h3><span aria-hidden="true">♡</span></div>
++                      <dl><div><dt>Категория</dt><dd>{item.category}</dd></div><div><dt>Зона</dt><dd>{item.storage_zone}</dd></div><div><dt>ID записи</dt><dd>{item.inventory_id}</dd></div></dl>
++                      <div className="product-status"><span className={statusClass(item)}><i /> {statusText(item)}</span><small>Остаток: {item.available_units ?? 0}</small></div>
++                      <button className="open-card" onClick={() => setSelected(item)}><span>{item.available_units ?? 0} ед.</span><Icon name="arrow" /></button>
++                    </div>
++                  </article>
++                ))}
++              </div>
++            ) : (
++              <div className="empty-state"><Icon name="search" /><h3>Позиции не найдены</h3><p>Измените запрос или сбросьте выбранные фильтры.</p><button className="button button--primary" onClick={resetFilters}>Сбросить фильтры</button></div>
++            )}
++
++            {filtered.length > PAGE_SIZE && <nav className="pagination" aria-label="Страницы каталога"><button disabled={currentPage === 1} onClick={() => setPage(value => Math.max(1, value - 1))} aria-label="Предыдущая страница">‹</button>{pageNumbers.map(number => <button key={number} className={number === currentPage ? "active" : ""} onClick={() => setPage(number)}>{number}</button>)}{pageCount > 5 && pageNumbers.at(-1)! < pageCount && <span>…</span>}<button disabled={currentPage === pageCount} onClick={() => setPage(value => Math.min(pageCount, value + 1))} aria-label="Следующая страница">›</button></nav>}
++          </div>
++
++          <aside className="inventory-sidebar">
++            <section className="activity-panel">
++              <header><h2>Живая активность</h2><span className="live-label"><i /> Live</span></header>
++              <div className="activity-list">
++                {activityItems.map((item, index) => (
++                  <button key={item.sn} onClick={() => setSelected(item)}>
++                    <span className={`activity-icon activity-icon--${index % 4}`}><Icon name={index === 2 ? "alert" : index === 1 ? "bookmark" : index === 3 ? "sparkle" : "check"} /></span>
++                    <span><b>{index === 1 ? "Добавлена запись" : index === 2 ? "Отмечен малый остаток" : "Остаток обновлён"}</b><small>{item.sn} · {item.available_units ?? 0} ед.</small></span>
++                    <time>{["2 мин", "12 мин", "25 мин", "38 мин", "1 ч"][index]}</time>
++                  </button>
++                ))}
++              </div>
++            </section>
++
++            <section className="insights-panel" id="insights">
++              <header><h2>Структура инвентаря</h2><span>На сегодня</span></header>
++              <div className="insight-columns">
++                <div><h3>По категориям</h3>{categoryBreakdown.map(row => <div className="bar-row" key={row.label}><span>{row.label}</span><i><b style={{ width: `${(row.value / categoryBreakdown[0].value) * 100}%` }} /></i><em>{row.value}</em></div>)}</div>
++                <div><h3>По зонам</h3>{zoneBreakdown.map(row => <div className="bar-row" key={row.label}><span>{row.label}</span><i><b style={{ width: `${(row.value / zoneBreakdown[0].value) * 100}%` }} /></i><em>{row.value}</em></div>)}</div>
++              </div>
++            </section>
++
++            <section className="secure-note"><Icon name="shield" /><div><strong>Внутренний контур</strong><span>Данные предназначены для складского учёта.</span></div></section>
++          </aside>
+         </div>
++      </section>
+ 
+-        {filtered.length ? <div className="grid">{filtered.slice(0, visible).map(item => (
+-          <article className="card" key={item.sn}>
+-            <button className="imageWrap" onClick={() => setSelected(item)} aria-label={`Открыть позицию: ${item.sn}`}>
+-              <span className="neutralPlaceholder" aria-hidden="true"><i /><b>EW</b><small>{item.category}<br />{item.sn}</small></span>
+-              <span className={item.stock_status === "IN STOCK" ? "badge in" : "badge out"}>{item.stock_status === "IN STOCK" ? `В наличии · ${item.available_units ?? "—"}` : "Нет в наличии"}</span>
+-            </button>
+-            <div className="cardBody"><div className="meta"><span>{item.category}</span><span>{item.storage_zone}</span></div><h3>{item.item_name}</h3><div className="cardLine"><p>Артикул: {item.sn}</p><strong>{item.available_units ?? 0} ед.</strong></div><button onClick={() => setSelected(item)}>Карточка учёта <span>→</span></button></div>
+-          </article>
+-        ))}</div> : <div className="empty"><b>Ничего не найдено</b><p>Попробуйте изменить запрос или сбросить фильтры.</p><button onClick={resetFilters}>Сбросить фильтры</button></div>}
+-        {visible < filtered.length && <button className="loadMore" onClick={() => setVisible(v => v + 24)}>Показать ещё <span>{filtered.length - visible}</span></button>}
++      <section className="trust-strip shell" id="about">
++        <article><span><Icon name="shield" /></span><div><strong>Проверенные данные</strong><small>Единая актуальная выгрузка</small></div></article>
++        <article><span><Icon name="tag" /></span><div><strong>Прозрачный учёт</strong><small>Артикулы и остатки без скрытых полей</small></div></article>
++        <article><span><Icon name="globe" /></span><div><strong>Единый реестр</strong><small>Категории и зоны в одном окне</small></div></article>
+       </section>
+ 
+-      <footer><div className="brandmark"><img src={LOGO} alt="EW" /><span><b>EW</b><small>внутренний учёт</small></span></div><p>Закрытый складской реестр · Данные обновлены 06.08.2026</p><a href="#top">Наверх ↑</a></footer>
++      <footer className="site-footer">
++        <div className="shell footer-grid">
++          <div className="footer-brand"><div className="brandmark"><Image src={LOGO} alt="EW Watches" width={48} height={48} unoptimized /><span><b>EW WATCHES</b><small>PRIVATE INVENTORY</small></span></div><p>Нейтральный складской реестр для точной сверки позиций и остатков.</p></div>
++          <div><h2>Реестр</h2><a href="#inventory">Все позиции</a><a href="#summary">Сводка</a><a href="#insights">Категории</a></div>
++          <div><h2>Система</h2><a href="#about">О реестре</a><a href="#inventory">Поиск</a><span>Обновлено 06.08.2026</span></div>
++          <div className="footer-status"><h2>Статус</h2><p><i /> Реестр доступен</p><small>{inventory.length} позиций · {units} единиц</small></div>
++        </div>
++        <div className="shell footer-bottom"><span>© 2026 EW Watches. Внутренний документ.</span><a href="#top">Наверх ↑</a></div>
++      </footer>
+ 
+-      {selected && <div className="modalBackdrop" onMouseDown={() => setSelected(null)} role="presentation"><section className="modal" onMouseDown={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={selected.item_name}><button className="close" onClick={() => setSelected(null)} aria-label="Закрыть">×</button><div className="modalImage"><span className="neutralPlaceholder large" aria-hidden="true"><i /><b>EW</b><small>{selected.category}<br />{selected.sn}</small></span></div><div className="modalCopy"><span className="eyebrow">Внутренняя карточка учёта</span><h2>{selected.item_name}</h2><p className="fullName">Служебная информация для сверки складских остатков.</p><dl><div><dt>Артикул</dt><dd>{selected.sn}</dd></div><div><dt>Категория</dt><dd>{selected.category}</dd></div><div><dt>Зона</dt><dd>{selected.storage_zone}</dd></div><div><dt>Остаток</dt><dd>{selected.stock_status === "IN STOCK" ? `${selected.available_units ?? "—"} ед.` : "Нет"}</dd></div><div><dt>ID записи</dt><dd>{selected.inventory_id}</dd></div></dl><button className="primaryBtn staticBtn" onClick={() => setSelected(null)}>Закрыть карточку</button></div></section></div>}
++      {selected && (
++        <div className="detail-backdrop" onMouseDown={() => setSelected(null)} role="presentation">
++          <section className="detail-modal" onMouseDown={event => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="detail-title">
++            <button className="detail-close" onClick={() => setSelected(null)} aria-label="Закрыть карточку"><Icon name="close" /></button>
++            <div className="detail-breadcrumbs">Реестр <span>›</span> {selected.category} <span>›</span> {selected.sn}</div>
++            <div className="detail-layout">
++              <div className="detail-gallery"><div className="detail-thumb active"><WatchPlaceholder item={selected} /></div><div className="detail-thumb"><span>EW</span></div><div className="detail-image"><WatchPlaceholder item={selected} large /><button aria-label="Увеличение недоступно"><Icon name="search" /></button></div></div>
++              <div className="detail-copy">
++                <span className="kicker">Внутренняя карточка учёта</span>
++                <h2 id="detail-title">{selected.sn}</h2>
++                <p className="detail-subtitle">{selected.category} · {selected.storage_zone}</p>
++                <div className="detail-summary"><div><small>Доступный остаток</small><strong>{selected.available_units ?? 0} ед.</strong><span className={statusClass(selected)}><i /> {statusText(selected)}</span></div><span className="record-id">ID {selected.inventory_id}</span></div>
++                <dl className="detail-facts"><div><dt>Артикул</dt><dd>{selected.sn}</dd></div><div><dt>Категория</dt><dd>{selected.category}</dd></div><div><dt>Зона хранения</dt><dd>{selected.storage_zone}</dd></div><div><dt>Статус</dt><dd>{selected.stock_status === "IN STOCK" ? "В наличии" : "Нет в наличии"}</dd></div><div><dt>На учёте</dt><dd>{selected.available_units ?? 0} единиц</dd></div></dl>
++                <button className="button button--dark" onClick={() => setSelected(null)}>Вернуться к реестру</button>
++                <div className="detail-assurances"><span><Icon name="shield" /> Проверенная запись</span><span><Icon name="tag" /> Нейтральное отображение</span><span><Icon name="box" /> Складской учёт</span></div>
++              </div>
++            </div>
++          </section>
++        </div>
++      )}
+     </main>
+   );
+ }
+-- 
+2.51.1
+
