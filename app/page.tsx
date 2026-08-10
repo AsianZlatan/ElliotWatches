@@ -4,10 +4,16 @@ import Image from "next/image";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import inventoryA from "./inventory-a.json";
 import inventoryB from "./inventory-b.json";
+import { BRAND_OPTIONS, FACTORY_OPTIONS, getBrand, getFactory } from "./inventory-metadata";
 
 const LOGO = "data:image/webp;base64,UklGRuYEAABXRUJQVlA4INoEAAAwGgCdASq0AIcAPpFCnUwloyKiIxGpiLASCWlu3Qpo1n9+P6QUNOdOoH7Adqb/Lb3bt29BdJroAeJDne+pOA+MATNJDCAV/fTmER4I06blE3/luiKQ0Fm7hTR96dEyyMBZMO66NTebg/MQHV+2uQBNeJF7VBX/lAfCrH+kDXXNapXFtwom/bGkpczYDPA5ZitNVJUa1GSiq0P92qsqLnAu37jt2Pf8pR63h89D/vjEcgFFbYJXEAtCaPMa2jUuQAGntpNJd/sXY2h/+YCKOgH+768Syalt9X7lwAD++pBH8gfmdmGB6Nzz1P8UsQ65lFtaliof4omKmMf5fzwzCDBS8K8TtM1w2UV1s2TS/VdFuB2c9N+PuSqcLvG1HETyzfWd9hu2t6G7mOGhEhQJm3C8DjN2Cfw7nDTPETxg6WUx7qXOkPn7jekgociVnptMR9T033+lfzMpvi6xt7hTTwHcJ+3fPzZPcE6fCnOX97qPpL6V/VJvi8k5ZjWark3LK0FNGJETctfjFNfa79M6KVp1IkWN9ezUMgKUpRxyIAF72CHd+3J9FE+W6y4t3VqHYKgFypfhV7zwcxJiBjFW0btWiILUEeWTBNae79XBBY2JKoE/H5T38y0WceKJuab/l0Z94NbwmLqVZGiuPfnoD+3ztNZP9EcrNGLMdzW6wGP8GNDbS/ScMQ4tLlPlrfnG+iHwgI5kKrIvDGhiUayr/w4RWCp8JmlynWLVdpuNDKVsWaFVdZ2ULoqrfEJGb1TAXdsfyCqqVs5WnC47tLDD0psxgezhx/WYu4iGXGQ8KJN34LUO7Bx3N3tKcVjZs/F7lvq/mVElXe3Edg8rPYOn8i69hXJ80Qh5J0jflO3YWU2la61knp20+iKlPrzeM/3gPb+Kh2o5Ai5BCrco9wHaL9/o1QsibliR00JGs0utT0nzhRR5ErRJJsxNrGVGNs+fL/0w/MaCicR/ifzJMX7hcFUEgtmJOMo/lHyPi2o2Te2K4UMzCU3svfVfwr+NRO6f54Z/d8EuAwN//44DNgNYor562CeG/Tu/S+EXur5MIv0Hv2Qb5cbesMOgCuKwqawoepLxOofV6yv5Bc5okk8E5rmnPug6MAUFe/FfUE8hqizABWhFb3Cj90J6zhkXheijPsX1aB920FVtrrgpbCRV/nXXIcfbp+cJFaJ6/njS9hzFhfni4B1451yUpRfQ4P8zHj6hzm/Y3jxy5TweFuW/VxlQutBr6pjZFxQzn7DCoZj09VJ7IvqRG7Q3STPL2XvDHGze/lHHUkGhTMjPmKeUBv0wDAoNXoiYI9d+XowUyDQa3QDf/mY3cmDUFMgTo1FGK0L1TOsSD04ohWLujonnIccCy+kO5gWUAmBHqe/2f49HkjJtzIMZ/n6EppIH8/ztkS5Z5Te8oMR+6E9MukGxLQMZS9lYsSAoFrBPfWRTusaV8E++NCoDg9WteR4lvD0MiXGHQ5DxOuIobOfoOtT9CJXFImzWkycKxiXaQx5+QJ7P2Avx+Xv22nGdHqmFnPVm16Pe68i+bivRrjg0D/0i6ce1E8wcyQtYdNqioVTYJgGGD04PzTtMvAk0P7BywbO0eULoVGQqQN/LBHpuJNlEaU+a/5s6CInSGtEDHCLtvxqkAIch7FK2yn5HAAA=";
 
-const inventory = [...inventoryA, ...inventoryB];
+const sourceInventory = [...inventoryA, ...inventoryB];
+const inventory = sourceInventory.map(item => ({
+  ...item,
+  brand: getBrand(item),
+  factory: getFactory(item),
+}));
 type Item = (typeof inventory)[number];
 type IconName =
   | "search"
@@ -26,8 +32,8 @@ type IconName =
   | "globe"
   | "close";
 
-const ALL_CATEGORIES = "Все категории";
-const ALL_ZONES = "Все зоны";
+const ALL_BRANDS = "Все бренды";
+const ALL_FACTORIES = "Все фабрики";
 const PAGE_SIZE = 10;
 const tones = ["#263d4a", "#7a6754", "#2f4639", "#675a4e", "#33444f"];
 
@@ -78,30 +84,31 @@ function statusText(item: Item) {
 
 export default function Home() {
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState(ALL_CATEGORIES);
-  const [zone, setZone] = useState(ALL_ZONES);
+  const [brand, setBrand] = useState(ALL_BRANDS);
+  const [factory, setFactory] = useState(ALL_FACTORIES);
   const [stockOnly, setStockOnly] = useState(false);
   const [sort, setSort] = useState("newest");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Item | null>(null);
 
-  const categories = useMemo(() => [ALL_CATEGORIES, ...Array.from(new Set(inventory.map(item => item.category).filter(Boolean))).sort()], []);
-  const zones = useMemo(() => [ALL_ZONES, ...Array.from(new Set(inventory.map(item => item.storage_zone).filter(Boolean))).sort()], []);
   const units = useMemo(() => inventory.reduce((sum, item) => sum + (item.available_units || 0), 0), []);
-  const categoryCount = categories.length - 1;
-  const zoneCount = zones.length - 1;
+  const brandCount = useMemo(() => new Set(inventory.map(item => item.brand).filter(Boolean)).size, []);
+  const factoryCount = useMemo(() => new Set(inventory.map(item => item.factory).filter(Boolean)).size, []);
   const lowStock = useMemo(() => inventory.filter(item => (item.available_units ?? 0) <= 2).length, []);
 
-  const categoryBreakdown = useMemo(() => {
+  const brandBreakdown = useMemo(() => {
     const counts = new Map<string, number>();
-    inventory.forEach(item => counts.set(item.category, (counts.get(item.category) ?? 0) + 1));
+    inventory.forEach(item => counts.set(item.brand, (counts.get(item.brand) ?? 0) + 1));
     return Array.from(counts, ([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 5);
   }, []);
 
-  const zoneBreakdown = useMemo(() => {
+  const factoryBreakdown = useMemo(() => {
     const counts = new Map<string, number>();
-    inventory.forEach(item => counts.set(item.storage_zone, (counts.get(item.storage_zone) ?? 0) + 1));
+    inventory.forEach(item => {
+      const label = item.factory || "Другие";
+      counts.set(label, (counts.get(label) ?? 0) + 1);
+    });
     return Array.from(counts, ([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 5);
   }, []);
 
@@ -113,18 +120,18 @@ export default function Home() {
   const filtered = useMemo(() => {
     const normalized = query.toLowerCase().trim();
     const result = inventory.filter(item =>
-      (!normalized || `${item.item_name} ${item.sn} ${item.category} ${item.storage_zone}`.toLowerCase().includes(normalized)) &&
-      (category === ALL_CATEGORIES || item.category === category) &&
-      (zone === ALL_ZONES || item.storage_zone === zone) &&
+      (!normalized || `${item.item_name} ${item.sn} ${item.brand} ${item.factory}`.toLowerCase().includes(normalized)) &&
+      (brand === ALL_BRANDS || item.brand === brand) &&
+      (factory === ALL_FACTORIES || item.factory === factory) &&
       (!stockOnly || item.stock_status === "IN STOCK")
     );
     return [...result].sort((a, b) => {
       if (sort === "sku") return a.sn.localeCompare(b.sn);
-      if (sort === "category") return a.category.localeCompare(b.category) || a.sn.localeCompare(b.sn);
+      if (sort === "brand") return a.brand.localeCompare(b.brand) || a.sn.localeCompare(b.sn);
       if (sort === "stock") return (b.available_units ?? 0) - (a.available_units ?? 0);
       return Number(b.inventory_id) - Number(a.inventory_id);
     });
-  }, [query, category, zone, stockOnly, sort]);
+  }, [query, brand, factory, stockOnly, sort]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -153,8 +160,8 @@ export default function Home() {
 
   function resetFilters() {
     setQuery("");
-    setCategory(ALL_CATEGORIES);
-    setZone(ALL_ZONES);
+    setBrand(ALL_BRANDS);
+    setFactory(ALL_FACTORIES);
     setStockOnly(false);
     setSort("newest");
     setPage(1);
@@ -171,12 +178,11 @@ export default function Home() {
           <nav aria-label="Основная навигация">
             <a href="#inventory">Инвентарь</a>
             <a href="#summary">Сводка</a>
-            <a href="#insights">Категории</a>
+            <a href="#insights">Бренды</a>
             <a href="#about">О системе</a>
           </nav>
           <div className="header-actions">
             <a className="icon-link" href="#inventory" aria-label="Перейти к поиску"><Icon name="search" /></a>
-            <span className="access-button"><i /> Закрытый доступ</span>
           </div>
         </div>
       </header>
@@ -184,9 +190,8 @@ export default function Home() {
       <section className="hero-section">
         <div className="shell hero-grid">
           <div className="hero-copy">
-            <span className="kicker">Внутренний реестр · обновлено 06 августа 2026</span>
             <h1>Точный учёт.<br />Без лишнего шума.</h1>
-            <p>Актуальные остатки по {inventory.length} складским позициям: артикулы, категории и зоны хранения в одном закрытом интерфейсе.</p>
+            <p>Актуальные остатки по {inventory.length} складским позициям: артикулы, бренды и фабрики в одном удобном интерфейсе.</p>
             <div className="hero-buttons">
               <a className="button button--primary" href="#inventory">Открыть инвентарь <Icon name="arrow" /></a>
               <a className="button button--ghost" href="#summary">Посмотреть сводку</a>
@@ -203,15 +208,15 @@ export default function Home() {
 
       <section className="tracker shell" id="summary">
         <div className="tracker-heading">
-          <div><span className="section-label">Live inventory tracker</span><span className="live-label"><i /> Live</span><span className="sync-label">Синхронизировано: 3 дня назад</span></div>
+          <div><span className="section-label">Live inventory tracker</span><span className="live-label"><i /> Live</span></div>
           <a href="#inventory">Весь инвентарь <Icon name="arrow" /></a>
         </div>
         <div className="stat-grid">
           <article><span className="stat-icon bronze"><Icon name="box" /></span><div><small>Всего позиций</small><strong>{inventory.length}</strong><p>Все складские записи</p></div></article>
           <article><span className="stat-icon green"><Icon name="check" /></span><div><small>Единиц в наличии</small><strong>{units}</strong><p>По текущей выгрузке</p></div></article>
           <article><span className="stat-icon amber"><Icon name="alert" /></span><div><small>Малый остаток</small><strong>{lowStock}</strong><p>2 единицы или меньше</p></div></article>
-          <article><span className="stat-icon blue"><Icon name="bookmark" /></span><div><small>Зон хранения</small><strong>{zoneCount}</strong><p>Активные складские зоны</p></div></article>
-          <article><span className="stat-icon violet"><Icon name="sparkle" /></span><div><small>Категорий</small><strong>{categoryCount}</strong><p>В текущем реестре</p></div></article>
+          <article><span className="stat-icon blue"><Icon name="bookmark" /></span><div><small>Фабрик</small><strong>{factoryCount}</strong><p>В текущем инвентаре</p></div></article>
+          <article><span className="stat-icon violet"><Icon name="sparkle" /></span><div><small>Брендов</small><strong>{brandCount}</strong><p>В текущем инвентаре</p></div></article>
         </div>
       </section>
 
@@ -219,10 +224,10 @@ export default function Home() {
         <div className="workspace-grid">
           <div className="inventory-main">
             <div className="filter-panel">
-              <label className="search-field"><Icon name="search" /><input value={query} onChange={event => updateFilters(() => setQuery(event.target.value))} placeholder="Поиск по артикулу, категории или зоне…" aria-label="Поиск по реестру" /></label>
-              <label className="select-field"><span>Категория</span><select value={category} onChange={event => updateFilters(() => setCategory(event.target.value))}>{categories.map(option => <option key={option}>{option}</option>)}</select></label>
-              <label className="select-field"><span>Зона</span><select value={zone} onChange={event => updateFilters(() => setZone(event.target.value))}>{zones.map(option => <option key={option}>{option}</option>)}</select></label>
-              <label className="select-field"><span>Сортировка</span><select value={sort} onChange={event => updateFilters(() => setSort(event.target.value))}><option value="newest">Сначала новые</option><option value="stock">По остатку</option><option value="sku">По артикулу</option><option value="category">По категории</option></select></label>
+              <label className="search-field"><Icon name="search" /><input value={query} onChange={event => updateFilters(() => setQuery(event.target.value))} placeholder="Поиск по артикулу, бренду или фабрике…" aria-label="Поиск по реестру" /></label>
+              <label className="select-field"><span>Бренд</span><select value={brand} onChange={event => updateFilters(() => setBrand(event.target.value))}><option>{ALL_BRANDS}</option>{BRAND_OPTIONS.map(option => <option key={option}>{option}</option>)}</select></label>
+              <label className="select-field"><span>Фабрика</span><select value={factory} onChange={event => updateFilters(() => setFactory(event.target.value))}><option>{ALL_FACTORIES}</option>{FACTORY_OPTIONS.map(option => <option key={option}>{option}</option>)}</select></label>
+              <label className="select-field"><span>Сортировка</span><select value={sort} onChange={event => updateFilters(() => setSort(event.target.value))}><option value="newest">Сначала новые</option><option value="stock">По остатку</option><option value="sku">По артикулу</option><option value="brand">По бренду</option></select></label>
               <button className={`filter-toggle${stockOnly ? " active" : ""}`} onClick={() => updateFilters(() => setStockOnly(value => !value))} aria-pressed={stockOnly}><Icon name="filter" /> В наличии</button>
             </div>
 
@@ -238,7 +243,7 @@ export default function Home() {
                     <button className="product-visual" onClick={() => setSelected(item)} aria-label={`Открыть карточку ${item.sn}`}><WatchPlaceholder item={item} /></button>
                     <div className="product-info">
                       <div className="product-title"><h3>{item.sn}</h3><span aria-hidden="true">♡</span></div>
-                      <dl><div><dt>Категория</dt><dd>{item.category}</dd></div><div><dt>Зона</dt><dd>{item.storage_zone}</dd></div><div><dt>ID записи</dt><dd>{item.inventory_id}</dd></div></dl>
+                      <dl><div><dt>Бренд</dt><dd>{item.brand}</dd></div><div><dt>Фабрика</dt><dd>{item.factory || "—"}</dd></div><div><dt>ID записи</dt><dd>{item.inventory_id}</dd></div></dl>
                       <div className="product-status"><span className={statusClass(item)}><i /> {statusText(item)}</span><small>Остаток: {item.available_units ?? 0}</small></div>
                       <button className="open-card" onClick={() => setSelected(item)}><span>{item.available_units ?? 0} ед.</span><Icon name="arrow" /></button>
                     </div>
@@ -269,8 +274,8 @@ export default function Home() {
             <section className="insights-panel" id="insights">
               <header><h2>Структура инвентаря</h2><span>На сегодня</span></header>
               <div className="insight-columns">
-                <div><h3>По категориям</h3>{categoryBreakdown.map(row => <div className="bar-row" key={row.label}><span>{row.label}</span><i><b style={{ width: `${(row.value / categoryBreakdown[0].value) * 100}%` }} /></i><em>{row.value}</em></div>)}</div>
-                <div><h3>По зонам</h3>{zoneBreakdown.map(row => <div className="bar-row" key={row.label}><span>{row.label}</span><i><b style={{ width: `${(row.value / zoneBreakdown[0].value) * 100}%` }} /></i><em>{row.value}</em></div>)}</div>
+                <div><h3>По брендам</h3>{brandBreakdown.map(row => <div className="bar-row" key={row.label}><span>{row.label}</span><i><b style={{ width: `${(row.value / brandBreakdown[0].value) * 100}%` }} /></i><em>{row.value}</em></div>)}</div>
+                <div><h3>По фабрикам</h3>{factoryBreakdown.map(row => <div className="bar-row" key={row.label}><span>{row.label}</span><i><b style={{ width: `${(row.value / factoryBreakdown[0].value) * 100}%` }} /></i><em>{row.value}</em></div>)}</div>
               </div>
             </section>
 
@@ -282,14 +287,14 @@ export default function Home() {
       <section className="trust-strip shell" id="about">
         <article><span><Icon name="shield" /></span><div><strong>Проверенные данные</strong><small>Единая актуальная выгрузка</small></div></article>
         <article><span><Icon name="tag" /></span><div><strong>Прозрачный учёт</strong><small>Артикулы и остатки без скрытых полей</small></div></article>
-        <article><span><Icon name="globe" /></span><div><strong>Единый реестр</strong><small>Категории и зоны в одном окне</small></div></article>
+        <article><span><Icon name="globe" /></span><div><strong>Единый реестр</strong><small>Бренды и фабрики в одном окне</small></div></article>
       </section>
 
       <footer className="site-footer">
         <div className="shell footer-grid">
           <div className="footer-brand"><div className="brandmark"><Image src={LOGO} alt="Elliot Watches" width={48} height={48} unoptimized /><span><b>ELLIOT WATCHES</b><small>PRIVATE INVENTORY</small></span></div><p>Нейтральный складской реестр для точной сверки позиций и остатков.</p></div>
-          <div><h2>Реестр</h2><a href="#inventory">Все позиции</a><a href="#summary">Сводка</a><a href="#insights">Категории</a></div>
-          <div><h2>Система</h2><a href="#about">О реестре</a><a href="#inventory">Поиск</a><span>Обновлено 06.08.2026</span></div>
+          <div><h2>Реестр</h2><a href="#inventory">Все позиции</a><a href="#summary">Сводка</a><a href="#insights">Бренды</a></div>
+          <div><h2>Система</h2><a href="#about">О реестре</a><a href="#inventory">Поиск</a></div>
           <div className="footer-status"><h2>Статус</h2><p><i /> Реестр доступен</p><small>{inventory.length} позиций · {units} единиц</small></div>
         </div>
         <div className="shell footer-bottom"><span>© 2026 Elliot Watches. Внутренний документ.</span><a href="#top">Наверх ↑</a></div>
@@ -299,15 +304,15 @@ export default function Home() {
         <div className="detail-backdrop" onMouseDown={() => setSelected(null)} role="presentation">
           <section className="detail-modal" onMouseDown={event => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="detail-title">
             <button className="detail-close" onClick={() => setSelected(null)} aria-label="Закрыть карточку"><Icon name="close" /></button>
-            <div className="detail-breadcrumbs">Реестр <span>›</span> {selected.category} <span>›</span> {selected.sn}</div>
+            <div className="detail-breadcrumbs">Реестр <span>›</span> {selected.brand} <span>›</span> {selected.sn}</div>
             <div className="detail-layout">
               <div className="detail-gallery"><div className="detail-thumb active"><WatchPlaceholder item={selected} /></div><div className="detail-thumb"><span>EW</span></div><div className="detail-image"><WatchPlaceholder item={selected} large /><button aria-label="Увеличение недоступно"><Icon name="search" /></button></div></div>
               <div className="detail-copy">
                 <span className="kicker">Внутренняя карточка учёта</span>
                 <h2 id="detail-title">{selected.sn}</h2>
-                <p className="detail-subtitle">{selected.category} · {selected.storage_zone}</p>
+                <p className="detail-subtitle">{selected.brand} · {selected.factory || "Фабрика не указана"}</p>
                 <div className="detail-summary"><div><small>Доступный остаток</small><strong>{selected.available_units ?? 0} ед.</strong><span className={statusClass(selected)}><i /> {statusText(selected)}</span></div><span className="record-id">ID {selected.inventory_id}</span></div>
-                <dl className="detail-facts"><div><dt>Артикул</dt><dd>{selected.sn}</dd></div><div><dt>Категория</dt><dd>{selected.category}</dd></div><div><dt>Зона хранения</dt><dd>{selected.storage_zone}</dd></div><div><dt>Статус</dt><dd>{selected.stock_status === "IN STOCK" ? "В наличии" : "Нет в наличии"}</dd></div><div><dt>На учёте</dt><dd>{selected.available_units ?? 0} единиц</dd></div></dl>
+                <dl className="detail-facts"><div><dt>Артикул</dt><dd>{selected.sn}</dd></div><div><dt>Бренд</dt><dd>{selected.brand}</dd></div><div><dt>Фабрика</dt><dd>{selected.factory || "—"}</dd></div><div><dt>Статус</dt><dd>{selected.stock_status === "IN STOCK" ? "В наличии" : "Нет в наличии"}</dd></div><div><dt>На учёте</dt><dd>{selected.available_units ?? 0} единиц</dd></div></dl>
                 <button className="button button--dark" onClick={() => setSelected(null)}>Вернуться к реестру</button>
                 <div className="detail-assurances"><span><Icon name="shield" /> Проверенная запись</span><span><Icon name="tag" /> Нейтральное отображение</span><span><Icon name="box" /> Складской учёт</span></div>
               </div>

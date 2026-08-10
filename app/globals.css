@@ -60,7 +60,7 @@ svg {
 }
 
 .shell {
-  width: min(1376px, calc(100% - 64px));
+  width: calc(100% - clamp(28px, 3vw, 56px));
   margin-inline: auto;
 }
 
@@ -155,7 +155,7 @@ svg {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 0;
 }
 
 .icon-link {
@@ -166,22 +166,6 @@ svg {
   font-size: 21px;
 }
 
-.access-button {
-  display: inline-flex;
-  height: 40px;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid #b99a7a;
-  border-radius: 4px;
-  padding: 0 17px;
-  color: #4d3926;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-.access-button i,
 .live-label i,
 .footer-status i,
 .hero-sync i {
@@ -1677,6 +1661,502 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
+@media (min-width: 1021px) {
+  html {
+    scroll-padding-top: 94px;
+  }
+
+  .site-header {
+    height: 84px;
+  }
+
+  .header-inner {
+    gap: 42px;
+  }
+
+  .brandmark {
+    gap: 14px;
+  }
+
+  .brandmark img {
+    width: 54px;
+    height: 54px;
+  }
+
+  .brandmark b {
+    font-size: 22px;
+  }
+
+  .brandmark small {
+    font-size: 9px;
+  }
+
+  .site-header nav a {
+    padding-block: 33px;
+    font-size: 12px;
+  }
+
+  .site-header nav a::after {
+    bottom: 22px;
+  }
+
+  .icon-link {
+    width: 40px;
+    height: 40px;
+    font-size: 25px;
+  }
+
+  .hero-grid,
+  .hero-visual {
+    min-height: 410px;
+  }
+
+  .hero-copy {
+    padding: 58px 0 62px;
+  }
+
+  .hero-copy h1 {
+    max-width: 820px;
+    margin: 0 0 18px;
+    font-size: clamp(56px, 4.8vw, 84px);
+  }
+
+  .hero-copy p {
+    max-width: 650px;
+    font-size: 17px;
+  }
+
+  .hero-buttons {
+    gap: 16px;
+    margin-top: 30px;
+  }
+
+  .button {
+    min-height: 50px;
+    padding-inline: 27px;
+    font-size: 11px;
+  }
+
+  .button svg {
+    font-size: 19px;
+  }
+
+  .hero-glow {
+    width: 600px;
+    height: 600px;
+  }
+
+  .hero-watch-card {
+    top: -38px;
+    right: 4%;
+    width: 82%;
+    height: 480px;
+  }
+
+  .hero-watch-card .watch-dial b {
+    font-size: 27px;
+  }
+
+  .hero-stamp {
+    top: 38px;
+    width: 112px;
+    height: 112px;
+  }
+
+  .hero-stamp img {
+    width: 74px;
+    height: 74px;
+  }
+
+  .hero-sync {
+    min-width: 190px;
+    padding: 16px 19px;
+  }
+
+  .hero-sync span,
+  .hero-sync small {
+    font-size: 10px;
+  }
+
+  .hero-sync strong {
+    font-size: 34px;
+  }
+
+  .tracker {
+    padding-top: 25px;
+  }
+
+  .tracker-heading {
+    margin-bottom: 18px;
+  }
+
+  .section-label {
+    font-size: 11px;
+  }
+
+  .live-label {
+    font-size: 10px;
+  }
+
+  .tracker-heading > a {
+    font-size: 11px;
+  }
+
+  .tracker-heading > a svg {
+    font-size: 17px;
+  }
+
+  .stat-grid {
+    gap: 16px;
+  }
+
+  .stat-grid article {
+    min-height: 104px;
+    gap: 17px;
+    padding: 17px 19px;
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    flex-basis: 50px;
+    font-size: 27px;
+  }
+
+  .stat-grid small {
+    font-size: 10px;
+  }
+
+  .stat-grid strong {
+    margin-top: 4px;
+    font-size: 31px;
+  }
+
+  .stat-grid p {
+    font-size: 10px;
+  }
+
+  .inventory-section {
+    padding-block: 20px 24px;
+  }
+
+  .workspace-grid {
+    gap: 18px;
+  }
+
+  .filter-panel {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .search-field,
+  .select-field,
+  .filter-toggle {
+    height: 50px;
+  }
+
+  .search-field {
+    gap: 12px;
+    padding-inline: 14px;
+  }
+
+  .search-field svg {
+    font-size: 21px;
+  }
+
+  .search-field input {
+    font-size: 12px;
+  }
+
+  .select-field {
+    padding-top: 13px;
+  }
+
+  .select-field span {
+    top: 6px;
+    left: 12px;
+    font-size: 8px;
+  }
+
+  .select-field select {
+    padding: 8px 10px 0;
+    font-size: 11px;
+  }
+
+  .filter-toggle {
+    gap: 9px;
+    padding-inline: 16px;
+    font-size: 10px;
+  }
+
+  .filter-toggle svg {
+    font-size: 18px;
+  }
+
+  .inventory-toolbar {
+    height: 60px;
+  }
+
+  .watch-count-icon {
+    font-size: 22px;
+  }
+
+  .inventory-toolbar strong {
+    font-size: 27px;
+  }
+
+  .inventory-toolbar small {
+    font-size: 11px;
+  }
+
+  .view-switch button {
+    height: 36px;
+    padding-inline: 12px;
+    font-size: 10px;
+  }
+
+  .view-switch button svg {
+    font-size: 17px;
+  }
+
+  .product-grid {
+    gap: 12px;
+  }
+
+  .product-visual {
+    height: 210px;
+  }
+
+  .product-info {
+    padding: 14px 14px 12px;
+  }
+
+  .product-title h3 {
+    font-size: 12px;
+  }
+
+  .product-title > span {
+    font-size: 17px;
+  }
+
+  .product-info dl {
+    gap: 7px;
+    margin: 13px 0;
+  }
+
+  .product-info dl div {
+    grid-template-columns: 68px 1fr;
+    gap: 8px;
+    font-size: 10px;
+  }
+
+  .product-status {
+    min-height: 24px;
+    font-size: 10px;
+  }
+
+  .product-status small {
+    font-size: 10px;
+  }
+
+  .open-card {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+
+  .open-card span,
+  .open-card svg {
+    font-size: 18px;
+  }
+
+  .pagination {
+    padding-top: 20px;
+  }
+
+  .pagination button {
+    width: 36px;
+    height: 36px;
+    font-size: 11px;
+  }
+
+  .pagination span {
+    font-size: 11px;
+  }
+
+  .inventory-sidebar {
+    gap: 12px;
+  }
+
+  .activity-panel > header,
+  .insights-panel > header {
+    padding: 16px 18px 13px;
+  }
+
+  .activity-panel h2,
+  .insights-panel h2 {
+    font-size: 11px;
+  }
+
+  .insights-panel header span {
+    font-size: 9px;
+  }
+
+  .activity-list {
+    padding: 6px 15px 9px;
+  }
+
+  .activity-list button {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 11px;
+    padding: 12px 0;
+  }
+
+  .activity-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 17px;
+  }
+
+  .activity-list b {
+    font-size: 10px;
+  }
+
+  .activity-list small,
+  .activity-list time {
+    font-size: 9px;
+  }
+
+  .insight-columns {
+    gap: 21px;
+    padding: 16px 18px 19px;
+  }
+
+  .insight-columns h3 {
+    font-size: 10px;
+  }
+
+  .bar-row {
+    grid-template-columns: 88px 1fr 24px;
+    gap: 9px;
+    margin-top: 8px;
+  }
+
+  .bar-row span,
+  .bar-row em {
+    font-size: 9px;
+  }
+
+  .secure-note {
+    min-height: 76px;
+    gap: 14px;
+    padding: 15px 18px;
+  }
+
+  .secure-note > svg {
+    font-size: 30px;
+  }
+
+  .secure-note strong {
+    font-size: 11px;
+  }
+
+  .secure-note span {
+    font-size: 9px;
+  }
+
+  .trust-strip article {
+    min-height: 82px;
+    gap: 15px;
+  }
+
+  .trust-strip article > span {
+    width: 42px;
+    height: 42px;
+    font-size: 22px;
+  }
+
+  .trust-strip strong {
+    font-size: 16px;
+  }
+
+  .trust-strip small {
+    font-size: 10px;
+  }
+
+  .footer-grid {
+    gap: 70px;
+    padding-block: 34px 30px;
+  }
+
+  .footer-brand p {
+    max-width: 340px;
+    font-size: 11px;
+  }
+
+  .footer-grid h2 {
+    font-size: 11px;
+  }
+
+  .footer-grid a,
+  .footer-grid span {
+    font-size: 10px;
+  }
+
+  .footer-status p {
+    font-size: 10px;
+  }
+
+  .footer-status small {
+    font-size: 9px;
+  }
+
+  .footer-bottom {
+    padding-block: 15px;
+    font-size: 9px;
+  }
+
+  .detail-breadcrumbs {
+    font-size: 10px;
+  }
+
+  .detail-subtitle {
+    font-size: 14px;
+  }
+
+  .detail-summary small,
+  .detail-summary span.in,
+  .detail-summary span.low,
+  .record-id {
+    font-size: 10px;
+  }
+
+  .detail-facts div {
+    font-size: 12px;
+  }
+
+  .detail-assurances span {
+    font-size: 9px;
+  }
+}
+
+@media (min-width: 1251px) {
+  .site-header nav {
+    gap: clamp(30px, 3.2vw, 64px);
+  }
+
+  .hero-grid {
+    grid-template-columns: minmax(430px, .86fr) minmax(520px, 1.14fr);
+  }
+
+  .workspace-grid {
+    grid-template-columns: minmax(0, 3.35fr) minmax(340px, 1fr);
+  }
+
+  .filter-panel {
+    grid-template-columns: minmax(290px, 1.45fr) repeat(3, minmax(150px, .72fr)) auto;
+  }
+}
+
 @media (max-width: 1250px) {
   .shell { width: min(1180px, calc(100% - 44px)); }
   .site-header nav { gap: 24px; }
@@ -1733,7 +2213,6 @@ select:focus-visible {
 }
 
 @media (max-width: 620px) {
-  .access-button { padding-inline: 11px; font-size: 7px; }
   .icon-link { display: none; }
   .hero-grid { min-height: 580px; }
   .hero-copy h1 { font-size: 39px; }
@@ -1782,7 +2261,6 @@ select:focus-visible {
   .brandmark img { width: 38px; height: 38px; }
   .brandmark b { font-size: 13px; }
   .brandmark small { font-size: 5px; }
-  .access-button { height: 34px; padding-inline: 9px; }
   .hero-copy h1 { font-size: 35px; }
   .product-grid { grid-template-columns: 1fr; }
   .product-visual { height: 270px; }

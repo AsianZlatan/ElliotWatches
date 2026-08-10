@@ -9,8 +9,8 @@ const basePath =
     : "";
 
 export const metadata: Metadata = {
-  title: "Elliot Watches — закрытый инвентарь",
-  description: "Премиальный складской реестр Elliot Watches: артикулы, актуальные остатки, категории и зоны хранения.",
+  title: "Elliot Watches — складской инвентарь",
+  description: "Складской инвентарь Elliot Watches: артикулы, актуальные остатки, бренды и фабрики.",
   icons: {
     icon: `${basePath}/favicon.svg`,
     shortcut: `${basePath}/favicon.svg`,
