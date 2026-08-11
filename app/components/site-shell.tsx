@@ -15,8 +15,7 @@ export function SiteHeader({ active }: { active: ActiveSection }) {
         <nav aria-label="Основная навигация">
           <Link className={active === "home" ? "active" : ""} href="/">Главная</Link>
           <Link className={active === "brands" ? "active" : ""} href="/#brands">Бренды</Link>
-          <Link className={active === "in-stock" ? "active" : ""} href="/in-stock/">В наличии</Link>
-          <Link href="/in-stock/#summary">Сводка</Link>
+          <Link className={active === "in-stock" ? "active" : ""} href="/in-stock/">Текущая коллекция</Link>
         </nav>
         <div className="header-actions">
           <Link className="icon-link" href="/in-stock/#inventory" aria-label="Перейти к поиску">
@@ -37,11 +36,11 @@ export function SiteFooter({ positions, units }: { positions: number; units: num
             <Image src={publicAsset("/favicon.svg")} alt="Elliot Watches" width={54} height={54} unoptimized />
             <span><b>ELLIOT WATCHES</b><small>CURATED TIMEPIECES</small></span>
           </div>
-          <p>Нейтральный каталог и складской реестр для удобной навигации по брендам, артикулам и остаткам.</p>
+          <p>Персональная витрина часов: знаковые модели, актуальные линейки брендов и карточки моей текущей коллекции.</p>
         </div>
-        <div><h2>Каталог</h2><Link href="/">Главная</Link><Link href="/#brands">Все бренды</Link><Link href="/in-stock/">В наличии</Link></div>
-        <div><h2>Навигация</h2><Link href="/in-stock/#summary">Сводка</Link><Link href="/in-stock/#inventory">Поиск</Link></div>
-        <div className="footer-status"><h2>Статус</h2><p><i /> Реестр доступен</p><small>{positions} позиций · {units} единиц</small></div>
+        <div><h2>Каталог</h2><Link href="/">Главная</Link><Link href="/#brands">Все бренды</Link><Link href="/in-stock/">Текущая коллекция</Link></div>
+        <div><h2>Навигация</h2><Link href="/#brands">Путеводитель по брендам</Link><Link href="/in-stock/#inventory">Поиск по коллекции</Link></div>
+        <div className="footer-status"><h2>Личный архив</h2><p>Коллекция Elliot Watches</p><small>{positions} карточек · {units} экземпляров</small></div>
       </div>
       <div className="shell footer-bottom"><span>© 2026 Elliot Watches.</span><Link href="/">На главную ↑</Link></div>
     </footer>

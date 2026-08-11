@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     default: "Elliot Watches — каталог часов",
     template: "%s | Elliot Watches",
   },
-  description: "Каталог Elliot Watches: бренды, модели и актуальные складские остатки.",
+  description: "Личная коллекция Elliot Watches: знаковые часы, бренды и актуальные модельные линии.",
   icons: {
     icon: `${basePath}/favicon.svg`,
     shortcut: `${basePath}/favicon.svg`,

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { SiteFooter, SiteHeader } from "../components/site-shell";
 import { inventory, publicAsset, type InventoryItem as Item } from "../inventory-data";
@@ -65,11 +66,11 @@ function WatchPlaceholder({ item, large = false }: { item?: Item; large?: boolea
 }
 
 function statusClass(item: Item) {
-  return (item.available_units ?? 0) <= 2 ? "low" : "in";
+  return (item.available_units ?? 0) > 0 ? "in" : "low";
 }
 
 function statusText(item: Item) {
-  return (item.available_units ?? 0) <= 2 ? "Малый остаток" : "В наличии";
+  return (item.available_units ?? 0) > 0 ? "В коллекции" : "Вне коллекции";
 }
 
 export default function Home() {
@@ -83,9 +84,6 @@ export default function Home() {
   const [selected, setSelected] = useState<Item | null>(null);
 
   const units = useMemo(() => inventory.reduce((sum, item) => sum + (item.available_units || 0), 0), []);
-  const brandCount = useMemo(() => new Set(inventory.map(item => item.brand).filter(Boolean)).size, []);
-  const factoryCount = useMemo(() => new Set(inventory.map(item => item.factory).filter(Boolean)).size, []);
-  const lowStock = useMemo(() => inventory.filter(item => (item.available_units ?? 0) <= 2).length, []);
 
   const brandBreakdown = useMemo(() => {
     const counts = new Map<string, number>();
@@ -100,11 +98,6 @@ export default function Home() {
       counts.set(label, (counts.get(label) ?? 0) + 1);
     });
     return Array.from(counts, ([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 5);
-  }, []);
-
-  const activityItems = useMemo(() => {
-    const criticalItem = inventory.find(item => (item.available_units ?? 0) <= 2) ?? inventory[2];
-    return [inventory[0], inventory[1], criticalItem, inventory[3], inventory[4]];
   }, []);
 
   const filtered = useMemo(() => {
@@ -164,33 +157,20 @@ export default function Home() {
       <section className="hero-section">
         <div className="shell hero-grid">
           <div className="hero-copy">
-            <h1>Точный учёт.<br />Без лишнего шума.</h1>
-            <p>Актуальные остатки по {inventory.length} складским позициям: артикулы, бренды и фабрики в одном удобном интерфейсе.</p>
+            <span className="section-label">Elliot Watches · личный архив</span>
+            <h1>Текущая<br />коллекция.</h1>
+            <p>{inventory.length} карточек собранных часов: артикулы, бренды, фабрики и количество в спокойном интерфейсе личного каталога.</p>
             <div className="hero-buttons">
-              <a className="button button--primary" href="#inventory">Открыть инвентарь <Icon name="arrow" /></a>
-              <a className="button button--ghost" href="#summary">Посмотреть сводку</a>
+              <a className="button button--primary" href="#inventory">Смотреть коллекцию <Icon name="arrow" /></a>
+              <Link className="button button--ghost" href="/#brands">Каталог брендов</Link>
             </div>
           </div>
           <div className="hero-visual" aria-hidden="true">
             <div className="hero-glow" />
             <div className="hero-watch-card"><WatchPlaceholder large /></div>
             <div className="hero-stamp"><Image src={publicAsset("/favicon.svg")} alt="" width={62} height={62} unoptimized /></div>
-            <div className="hero-sync"><span><i /> Система активна</span><strong>{units}</strong><small>единиц на учёте</small></div>
+            <div className="hero-sync"><span>Личный архив</span><strong>{units}</strong><small>экземпляров в коллекции</small></div>
           </div>
-        </div>
-      </section>
-
-      <section className="tracker shell" id="summary">
-        <div className="tracker-heading">
-          <div><span className="section-label">Live inventory tracker</span><span className="live-label"><i /> Live</span></div>
-          <a href="#inventory">Весь инвентарь <Icon name="arrow" /></a>
-        </div>
-        <div className="stat-grid">
-          <article><span className="stat-icon bronze"><Icon name="box" /></span><div><small>Всего позиций</small><strong>{inventory.length}</strong><p>Все складские записи</p></div></article>
-          <article><span className="stat-icon green"><Icon name="check" /></span><div><small>Единиц в наличии</small><strong>{units}</strong><p>По текущей выгрузке</p></div></article>
-          <article><span className="stat-icon amber"><Icon name="alert" /></span><div><small>Малый остаток</small><strong>{lowStock}</strong><p>2 единицы или меньше</p></div></article>
-          <article><span className="stat-icon blue"><Icon name="bookmark" /></span><div><small>Фабрик</small><strong>{factoryCount}</strong><p>В текущем инвентаре</p></div></article>
-          <article><span className="stat-icon violet"><Icon name="sparkle" /></span><div><small>Брендов</small><strong>{brandCount}</strong><p>В текущем инвентаре</p></div></article>
         </div>
       </section>
 
@@ -198,11 +178,11 @@ export default function Home() {
         <div className="workspace-grid">
           <div className="inventory-main">
             <div className="filter-panel">
-              <label className="search-field"><Icon name="search" /><input value={query} onChange={event => updateFilters(() => setQuery(event.target.value))} placeholder="Поиск по артикулу, бренду или фабрике…" aria-label="Поиск по реестру" /></label>
+              <label className="search-field"><Icon name="search" /><input value={query} onChange={event => updateFilters(() => setQuery(event.target.value))} placeholder="Поиск по артикулу, бренду или фабрике…" aria-label="Поиск по коллекции" /></label>
               <label className="select-field"><span>Бренд</span><select value={brand} onChange={event => updateFilters(() => setBrand(event.target.value))}><option>{ALL_BRANDS}</option>{BRAND_OPTIONS.map(option => <option key={option}>{option}</option>)}</select></label>
               <label className="select-field"><span>Фабрика</span><select value={factory} onChange={event => updateFilters(() => setFactory(event.target.value))}><option>{ALL_FACTORIES}</option>{FACTORY_OPTIONS.map(option => <option key={option}>{option}</option>)}</select></label>
-              <label className="select-field"><span>Сортировка</span><select value={sort} onChange={event => updateFilters(() => setSort(event.target.value))}><option value="newest">Сначала новые</option><option value="stock">По остатку</option><option value="sku">По артикулу</option><option value="brand">По бренду</option></select></label>
-              <button className={`filter-toggle${stockOnly ? " active" : ""}`} onClick={() => updateFilters(() => setStockOnly(value => !value))} aria-pressed={stockOnly}><Icon name="filter" /> В наличии</button>
+              <label className="select-field"><span>Сортировка</span><select value={sort} onChange={event => updateFilters(() => setSort(event.target.value))}><option value="newest">Сначала новые</option><option value="stock">По количеству</option><option value="sku">По артикулу</option><option value="brand">По бренду</option></select></label>
+              <button className={`filter-toggle${stockOnly ? " active" : ""}`} onClick={() => updateFilters(() => setStockOnly(value => !value))} aria-pressed={stockOnly}><Icon name="filter" /> С количеством</button>
             </div>
 
             <div className="inventory-toolbar">
@@ -217,8 +197,8 @@ export default function Home() {
                     <button className="product-visual" onClick={() => setSelected(item)} aria-label={`Открыть карточку ${item.sn}`}><WatchPlaceholder item={item} /></button>
                     <div className="product-info">
                       <div className="product-title"><h3>{item.sn}</h3><span aria-hidden="true">♡</span></div>
-                      <dl><div><dt>Бренд</dt><dd>{item.brand}</dd></div><div><dt>Фабрика</dt><dd>{item.factory || "—"}</dd></div><div><dt>ID записи</dt><dd>{item.inventory_id}</dd></div></dl>
-                      <div className="product-status"><span className={statusClass(item)}><i /> {statusText(item)}</span><small>Остаток: {item.available_units ?? 0}</small></div>
+                      <dl><div><dt>Бренд</dt><dd>{item.brand}</dd></div><div><dt>Фабрика</dt><dd>{item.factory || "—"}</dd></div><div><dt>ID карточки</dt><dd>{item.inventory_id}</dd></div></dl>
+                      <div className="product-status"><span className={statusClass(item)}><i /> {statusText(item)}</span><small>Количество: {item.available_units ?? 0}</small></div>
                       <button className="open-card" onClick={() => setSelected(item)}><span>{item.available_units ?? 0} ед.</span><Icon name="arrow" /></button>
                     </div>
                   </article>
@@ -232,36 +212,23 @@ export default function Home() {
           </div>
 
           <aside className="inventory-sidebar">
-            <section className="activity-panel">
-              <header><h2>Живая активность</h2><span className="live-label"><i /> Live</span></header>
-              <div className="activity-list">
-                {activityItems.map((item, index) => (
-                  <button key={item.sn} onClick={() => setSelected(item)}>
-                    <span className={`activity-icon activity-icon--${index % 4}`}><Icon name={index === 2 ? "alert" : index === 1 ? "bookmark" : index === 3 ? "sparkle" : "check"} /></span>
-                    <span><b>{index === 1 ? "Добавлена запись" : index === 2 ? "Отмечен малый остаток" : "Остаток обновлён"}</b><small>{item.sn} · {item.available_units ?? 0} ед.</small></span>
-                    <time>{["2 мин", "12 мин", "25 мин", "38 мин", "1 ч"][index]}</time>
-                  </button>
-                ))}
-              </div>
-            </section>
-
             <section className="insights-panel" id="insights">
-              <header><h2>Структура инвентаря</h2><span>На сегодня</span></header>
+              <header><h2>Структура коллекции</h2><span>{inventory.length} карточек</span></header>
               <div className="insight-columns">
                 <div><h3>По брендам</h3>{brandBreakdown.map(row => <div className="bar-row" key={row.label}><span>{row.label}</span><i><b style={{ width: `${(row.value / brandBreakdown[0].value) * 100}%` }} /></i><em>{row.value}</em></div>)}</div>
                 <div><h3>По фабрикам</h3>{factoryBreakdown.map(row => <div className="bar-row" key={row.label}><span>{row.label}</span><i><b style={{ width: `${(row.value / factoryBreakdown[0].value) * 100}%` }} /></i><em>{row.value}</em></div>)}</div>
               </div>
             </section>
 
-            <section className="secure-note"><Icon name="shield" /><div><strong>Внутренний контур</strong><span>Данные предназначены для складского учёта.</span></div></section>
+            <section className="secure-note"><Icon name="shield" /><div><strong>Личный каталог</strong><span>Нейтральные карточки без коммерческого статуса и автоматических обновлений.</span></div></section>
           </aside>
         </div>
       </section>
 
       <section className="trust-strip shell" id="about">
-        <article><span><Icon name="shield" /></span><div><strong>Проверенные данные</strong><small>Единая актуальная выгрузка</small></div></article>
-        <article><span><Icon name="tag" /></span><div><strong>Прозрачный учёт</strong><small>Артикулы и остатки без скрытых полей</small></div></article>
-        <article><span><Icon name="globe" /></span><div><strong>Единый реестр</strong><small>Бренды и фабрики в одном окне</small></div></article>
+        <article><span><Icon name="shield" /></span><div><strong>Личная подборка</strong><small>Только карточки текущей коллекции</small></div></article>
+        <article><span><Icon name="tag" /></span><div><strong>Понятные данные</strong><small>Артикулы, бренды и фабрики</small></div></article>
+        <article><span><Icon name="globe" /></span><div><strong>Единый каталог</strong><small>Бренды и модели в одном месте</small></div></article>
       </section>
 
       <SiteFooter positions={inventory.length} units={units} />
@@ -270,17 +237,17 @@ export default function Home() {
         <div className="detail-backdrop" onMouseDown={() => setSelected(null)} role="presentation">
           <section className="detail-modal" onMouseDown={event => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="detail-title">
             <button className="detail-close" onClick={() => setSelected(null)} aria-label="Закрыть карточку"><Icon name="close" /></button>
-            <div className="detail-breadcrumbs">Реестр <span>›</span> {selected.brand} <span>›</span> {selected.sn}</div>
+            <div className="detail-breadcrumbs">Коллекция <span>›</span> {selected.brand} <span>›</span> {selected.sn}</div>
             <div className="detail-layout">
               <div className="detail-gallery"><div className="detail-thumb active"><WatchPlaceholder item={selected} /></div><div className="detail-thumb"><span>EW</span></div><div className="detail-image"><WatchPlaceholder item={selected} large /><button aria-label="Увеличение недоступно"><Icon name="search" /></button></div></div>
               <div className="detail-copy">
-                <span className="kicker">Внутренняя карточка учёта</span>
+                <span className="kicker">Карточка личной коллекции</span>
                 <h2 id="detail-title">{selected.sn}</h2>
                 <p className="detail-subtitle">{selected.brand} · {selected.factory || "Фабрика не указана"}</p>
-                <div className="detail-summary"><div><small>Доступный остаток</small><strong>{selected.available_units ?? 0} ед.</strong><span className={statusClass(selected)}><i /> {statusText(selected)}</span></div><span className="record-id">ID {selected.inventory_id}</span></div>
-                <dl className="detail-facts"><div><dt>Артикул</dt><dd>{selected.sn}</dd></div><div><dt>Бренд</dt><dd>{selected.brand}</dd></div><div><dt>Фабрика</dt><dd>{selected.factory || "—"}</dd></div><div><dt>Статус</dt><dd>{selected.stock_status === "IN STOCK" ? "В наличии" : "Нет в наличии"}</dd></div><div><dt>На учёте</dt><dd>{selected.available_units ?? 0} единиц</dd></div></dl>
-                <button className="button button--dark" onClick={() => setSelected(null)}>Вернуться к реестру</button>
-                <div className="detail-assurances"><span><Icon name="shield" /> Проверенная запись</span><span><Icon name="tag" /> Нейтральное отображение</span><span><Icon name="box" /> Складской учёт</span></div>
+                <div className="detail-summary"><div><small>Количество в коллекции</small><strong>{selected.available_units ?? 0} ед.</strong><span className={statusClass(selected)}><i /> {statusText(selected)}</span></div><span className="record-id">ID {selected.inventory_id}</span></div>
+                <dl className="detail-facts"><div><dt>Артикул</dt><dd>{selected.sn}</dd></div><div><dt>Бренд</dt><dd>{selected.brand}</dd></div><div><dt>Фабрика</dt><dd>{selected.factory || "—"}</dd></div><div><dt>Статус</dt><dd>{selected.stock_status === "IN STOCK" ? "В коллекции" : "Вне коллекции"}</dd></div><div><dt>Количество</dt><dd>{selected.available_units ?? 0} единиц</dd></div></dl>
+                <button className="button button--dark" onClick={() => setSelected(null)}>Вернуться к коллекции</button>
+                <div className="detail-assurances"><span><Icon name="shield" /> Личная запись</span><span><Icon name="tag" /> Нейтральное отображение</span><span><Icon name="box" /> Каталог коллекции</span></div>
               </div>
             </div>
           </section>
